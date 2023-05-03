@@ -1,8 +1,9 @@
-Stickers
+Stickers/
 Cat.log
 test.*
 temp.*
-cogs/__pycache__
-__pycache__
+tmp/
+cogs/__pycache__/
+__pycache__/
 yarxi.db
-.venv
+.venv/
