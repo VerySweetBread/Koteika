@@ -1,0 +1,17 @@
+text.color:         white
+
+figure.facecolor:   1D1D1D
+
+axes.facecolor:     1D1D1D
+axes.labelcolor:    white
+axes.prop_cycle:    cycler('color', ['EF9A9A', 'B359C3', '329DFF', '40c4ff', '64ffda', 'c5e1a5', 'fff59d', 'ffcc80', 'bcaaa4', 'b0bec5'])
+
+grid.color:         303030
+grid.linewidth:     1
+
+legend.facecolor:   393939
+
+xtick.color:        white
+xtick.labelcolor:   inherit
+ytick.color:        white
+ytick.labelcolor:   inherit

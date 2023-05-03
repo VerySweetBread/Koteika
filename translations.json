@@ -1,0 +1,151 @@
+{
+    "ru": {
+        "translate": "Перевести",
+        "cats": "котики",
+        "are cutes": "милахи",
+
+        "Top members of the guild": "Топ участников сервера",
+        "Category": "Категория",
+        "Balance": "Баланс",
+        "Experience": "Опыт",
+        "Time in voice channel": "Время в войсе",
+
+        "Comparison of exp with other members": "Сравнения опыта с другими пользователями",
+        "period": "период",
+        "Per the entire period": "За весь период",
+        "Per month": "За месяц",
+        "Per day": "За день",
+
+        "user": "участник",
+        "View balance and level": "Просмотр баланса и уровня",
+    
+        "Experience gain statistics": "Статиcтика получения опыта",
+
+        "rank": "ранг",
+        "top": "топ",
+        "graph": "график",
+        "dif_graph": "разн_график",
+
+        "activity": "активность",
+
+        "make_music": "синтезатор",
+        "Music MIDI synthesis": "Синтезация MIDI мелодии",
+        "MIDI notes (comma separated)": "MIDI ноты (через запятую)",
+        "notes": "ноты",
+
+        "format": "формат",
+        "Image": "Изображение",
+        "Video": "Видео",
+        "GIF": "Гифка",
+        "hentai": "хентай",
+        "Random hentai": "Случайный хентай",
+
+        "about": "о_боте",
+        "About this bot": "Об этом боте вкратце",
+        "info": "Мяв! Я ~~очередной~~ дискорд бот, ~~который в очередной раз попытается захватить мир~~.\nСоздатель: Сладкий Хлеб#1199\nНаписан на: Discord.py\nХост: </host:981229566804774944>",
+
+        
+        "activity.Avarage": "В среднем",
+        "activity.Max": "Максимально",
+        "activity.On this day\nof the week": "В этот день\nнедели",
+        "activity.Today": "Сегодня",
+        "activity.Hours": "Часы",
+        "activity.Messages": "Сообщения",
+
+        "rank.Info about": "Данные о",
+        "rank.Money": "Баланс",
+        "rank.Global stats": "Глобальная статистика",
+        "rank.On this guild": "На этом сервере",
+        "rank.Level": "Уровень",
+        "rank.Exp": "Опыт",
+        "rank.Time in voice channels": "Время в голосовых каналах",
+        "rank.Per hour": "За час",
+        "rank.Per day": "За день",
+        "rank.per the past hour": "за прошедший час",
+        "rank.per the past day": "за прошедший день",
+
+        "errors_text": "Опять кошки уронили вазу и что-то сломали; Сегодня не тот день, оно не заработает; Мне слишком лень делать это; Что-то сломалось. Я ничего не трогала!"
+    },
+
+    "fr": {
+        "translate": "Traduire",
+        "Top members of the guild": "Leaderboard de mebers du serveur",
+        "Category": "Catégorie",
+        "Balance": "L'argent",
+        "Experience": "Expérience",
+        "Time in voice channel": "Temps dans les salons vocaux",
+
+        "Comparison of exp with other members": "Comparaison d'expérience avec d'autres membres",
+        "period": "période",
+        "Per the entire period": "Par toute la période",
+        "Per month": "Per mois",
+        "Per day": "Per jour",
+
+        "user": "membre",
+        "View balance and level": "Afficher l'argent et le niveau",
+    
+        "Experience gain statistics": "Statistiques de gain d'expérience",
+
+        "rank": "rang",
+        "top": "classement",
+        "graph": "graphique",
+        "dif_graph": "graph_de_comp",
+
+        "activity": "activité",
+
+        "make_music": "synthétiseur",
+        "Music MIDI synthesis": "synthétiseur mélodie MIDI",
+        "MIDI notes (comma separated)": "Notes MIDI (séparées par des virgules)",
+        "notes": "notes",
+
+        "format": "format",
+        "Image": "Image",
+        "Video": "Vidéo",
+        "GIF": "GIF",
+        "hentai": "hentai",
+        "Random hentai": "Hentai aléatoire",
+
+        "about": "a_propos",
+        "About this bot": "À propos de ce robot",
+        "info": "Мяв! Я ~~очередной~~ дискорд бот, ~~который в очередной раз попытается захватить мир~~.\nСоздатель: Сладкий Хлеб#1199\nНаписан на: Discord.py\nХост: </host:981229566804774944>",
+
+        "activity.Avarage": "Moyen",
+        "activity.Max": "Maximum",
+        "activity.On this day\nof the week": "En ce jour de\nla semaine",
+        "activity.Today": "Aujourd'hui",
+        "activity.Hours": "Heures",
+        "activity.Messages": "Messages",
+
+        "rank.Info about": "Informations sur",
+        "rank.Money": "L'argent",
+        "rank.Global stats": "Statistiques mondiales",
+        "rank.On this guild": "Sur ce serveur",
+        "rank.Level": "Niveau",
+        "rank.Exp": "Expérience",
+        "rank.Time in voice channels": "Temps dans les salons vocaux",
+        "rank.Per hour": "Dans une heure",
+        "rank.Per day": "Dans une jour",
+        "rank.per the past hour": "au cours de la dernière heure",
+        "rank.per the past day": "au cours de la dernière jour"
+    },
+
+    "de": {
+        "Time in voice channel": "Zeit im Sprachcanal",
+        "Per the entire period": "Für den gesamten Zeitraum",
+        "Per month": "Monatsüber",
+        "Per day": "Tagsüber",
+
+        "rank.Info about": "Information über",
+        "rank.Money": "Balance",
+        "rank.Global stats": "Globale Statistiken",
+        "rank.On this guild": "Auf diesem Server",
+        "rank.Level": "Niveau",
+        "rank.Exp": "Erfahrung",
+        "rank.Time in voice channels": "Zeit im Sprachcanal",
+        "rank.Per hour": "Stundeüber",
+        "rank.Per day": "Tagsüber",
+        "rank.per the past hour": "am letxten Stunde",
+        "rank.per the past day": "am letzten Tag"
+
+    }
+}
