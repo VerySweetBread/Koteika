@@ -12,6 +12,11 @@ pillow = "*"
 levenshtein = "*"
 discordutils = "*"
 yt-dlp = "*"
+romkan = "*"
+mido = "*"
+schedule = "*"
+cairosvg = "*"
+matplotlib = "*"
 
 [dev-packages]
 
