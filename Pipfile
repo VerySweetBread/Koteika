@@ -17,6 +17,7 @@ mido = "*"
 schedule = "*"
 cairosvg = "*"
 matplotlib = "*"
+simpledemotivators = {file = "https://github.com/Infqq/simpledemotivators/archive/main.zip"}
 
 [dev-packages]
 

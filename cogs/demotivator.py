@@ -16,13 +16,14 @@ class Demotivator(commands.Cog):
             return
 
         logger.debug("Meow")
-        filename = join("/home/pi/Koteika/tmp", f"{inter.id}_{image.filename}")
+        filename = join("tmp", f"{inter.id}_{image.filename}")
         logger.debug(filename)
         await image.save(filename)
         Dem(title, text).create(filename, font_name="FreeSans.ttf")
-        with open(filename) as f:
+        with open('demresult.jpg', 'rb') as f:
             await inter.response.send_message(file=discord.File(f))
         remove(filename)
+        remove('demresult.jpg')
 
 async def setup(bot):
     await bot.add_cog(Demotivator())

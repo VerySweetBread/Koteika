@@ -43,6 +43,10 @@ db = MongoClient('localhost', 27017).Koteika
 if os.path.exists('prefixes.json'):
     with open('prefixes.json', 'r') as f:
         prefs = load(f)
+
+if not os.path.exists('tmp'):
+    os.mkdir('tmp')
+
 else:
     prefs = {"default": "*"}
 
