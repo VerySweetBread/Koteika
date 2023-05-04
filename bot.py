@@ -38,13 +38,6 @@ from cogs.music     import *
 TOKEN = getenv('NATSUKO_TOKEN')
 my_id = 710089471835504672
 
-janres = ['feet', 'yuri', 'trap', 'futanari', 'hololewd', 'lewdkemo', 'solog', 'feetg', 'cum', 'erokemo', 'les',
-          'wallpaper', 'lewdk', 'ngif', 'tickle', 'lewd', 'feed', 'gecg', 'eroyuri', 'eron', 'cum_jpg', 'bj',
-          'nsfw_neko_gif', 'solo', 'kemonomimi', 'nsfw_avatar', 'gasm', 'poke', 'anal', 'slap', 'hentai', 'avatar',
-          'erofeet', 'holo', 'keta', 'blowjob', 'pussy', 'tits', 'holoero', 'lizard', 'pussy_jpg', 'pwankg', 'classic',
-          'kuni', 'waifu', 'pat', '8ball', 'kiss', 'femdom', 'neko', 'spank', 'cuddle', 'erok', 'fox_girl', 'boobs',
-          'random_hentai_gif', 'hug', 'ero', 'smug', 'goose', 'baka', 'woof']
-
 db = MongoClient('localhost', 27017).Koteika
 
 if os.path.exists('prefixes.json'):
@@ -604,36 +597,6 @@ async def eval_fn(ctx, timeout: typing.Optional[int] = 10, *, cmd):
     except Exception as e:
         await ctx.message.reply(repr(e))
 
-
-@bot.command(brief="$commands_hentai_brief",
-             help="`" + "*" + "belle help`")
-async def hentai(ctx, type="any", num: int = 1, delete: bool = True):
-    global janres
-    region = ctx.message.author.id
-    region = db.members.find_one({"id": region})["language"]
-
-    if type == "any":
-        shuffle(janres)
-        type = janres[0]
-    elif type == "help":
-        await ctx.send(', '.join(janres))
-    elif type not in janres:
-        await ctx.send(translate("$commands_hentai_notFound", region).format(ctx.prefix))
-    if ctx.message.guild is not None:
-        await ctx.message.delete()
-
-        if not ctx.channel.is_nsfw():
-            await ctx.send(translate("$commands_hentai_notNSFW", region))
-            return
-        else:
-            for i in range(num):
-                try:
-                    if delete:
-                        await ctx.send(nekos.img(type), delete_after=10)
-                    else:
-                        await ctx.send(nekos.img(type))
-                except:
-                    await ctx.send(nekos.img(type))
 
 @bot.command()
 @commands.is_owner()
