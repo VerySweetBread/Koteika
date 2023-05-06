@@ -5,16 +5,19 @@ import asyncio
 
 from loguru import logger
 from json import dumps
+from discord import app_commands
 from discord.ext import commands
 
 from bot import db
+
+# TODO: locale
 
 class Music(commands.Cog, name="Музыка"):
     def __init__(self, bot):
         self.bot = bot
         self.query = {}
 
-    def play_(self, ctx, url):
+    def play_(self, inter, url):
         YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist':'True'}
         FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
         with youtube_dl.YoutubeDL(YDL_OPTIONS) as ydl:
@@ -27,18 +30,18 @@ class Music(commands.Cog, name="Музыка"):
         with open("tmp/tmp.log", 'w') as f:
             f.write(dumps(info))
         audio_source = discord.FFmpegPCMAudio(URL, **FFMPEG_OPTIONS)
-        ctx.guild.voice_client.play(audio_source, after=lambda error: self.next_(ctx, error))
+        inter.guild.voice_client.play(audio_source, after=lambda error: self.next_(inter, error))
 
         try:    
-            asyncio.create_task(self.send_embed_(ctx, info, url))
+            asyncio.create_task(self.send_embed_(inter, info, url))
         except:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             loop.set_debug(True)
-            loop.run_until_complete(self.send_embed_(ctx, info, url))
+            loop.run_until_complete(self.send_embed_(inter, info, url))
             loop.stop()
 
-    async def send_embed_(self, ctx, info, url):
+    async def send_embed_(self, inter, info, url):
         embed = discord.Embed (
             title=info["title"],
             url=url,
@@ -49,80 +52,93 @@ class Music(commands.Cog, name="Музыка"):
             url=info["uploader_url"]
         )
         embed.set_thumbnail( url=info["thumbnail"] )
-        await ctx.send(embed=embed)
+        await inter.response.send_message(embed=embed)
 
-    async def end_of_query_(self, ctx):
-        await ctx.send("В очереди больше не осталось песен")
+    async def end_of_query_(self, inter):
+        await inter.response.send_message("В очереди больше не осталось песен")
 
 
-    @commands.command()
-    async def play(self, ctx, url, query: bool = True):        
-        channel = ctx.author.voice.channel
+    @app_commands.command(description="Plays music from popular platforms")
+    @app_commands.describe(
+        url="URL from Youtube/RuTube and other platforms",
+        query="Add music to query"
+    )
+    async def play(self, inter, url: str):        
+        channel = inter.user.voice.channel
 
-        if ctx.author.voice is None:
-            await ctx.send("Ты не в ГК")
+        if inter.user.voice is None:
+            await inter.response.send_message("Ты не в ГК")
             return
-        if ctx.guild.voice_client is None:
+        if inter.guild.voice_client is None:
             await channel.connect()
-        elif ctx.author.voice.channel != ctx.guild.voice_client.channel:
-            await ctx.send(f"Занято каналом {ctx.guild.voice_client.channel.mention}")
+        elif inter.user.voice.channel != inter.guild.voice_client.channel:
+            await inter.response.send_message(f"Занято каналом {inter.guild.voice_client.channel.mention}")
             return
 
-        client = ctx.guild.voice_client
+        client = inter.guild.voice_client
 
         if url=="":
             url = self.query[str(channel.id)][0]
             del self.query[str(channel.id)][0]
 
+        if str(channel.id) not in self.query.keys():
+            self.query[str(channel.id)] = {
+                "requester_id": inter.user.id,
+                "music_pos": -1,
+                "query": [],
+                "context": inter
+            }
 
-        if query:
-            if client.is_playing() or client.is_paused():
-                if str(channel.id) not in self.query.keys():
-                    self.query[str(channel.id)] = {
-                        "requester_id": "ctx.author.id",
-                        "music_pos": -1,
-                        "query": [],
-                        "context": ctx
-                    }
+        if client.is_playing() or client.is_paused():
+            if query:
                 self.query[str(channel.id)]["query"].append(url)
-                await ctx.send("Добавлена новая песня в очередь")
+                logger.debug("\n".join(self.query[str(channel.id)]['query']))
+                await inter.response.send_message("Добавлена новая песня в очередь")
                 return
+            else:
+                inter.guild.voice_client.stop()
 
-        self.play_(ctx, url)
+        self.play_(inter, url)
         
-    @commands.command()
-    async def stop(self, ctx):
-        ctx.guild.voice_client.stop()
+    @app_commands.command()
+    async def stop(self, inter):
+        inter.guild.voice_client.stop()
+        await inter.response.send_message("Остановлено")
 
-    @commands.command()
-    async def pause(self, ctx):
-        ctx.guild.voice_client.pause()
+    @app_commands.command()
+    async def pause(self, inter):
+        inter.guild.voice_client.pause()
+        await inter.response.send_message("Поставлено на паузу")
 
-    @commands.command()
-    async def resume(self, ctx):
-        ctx.guild.voice_client.resume()
+    @app_commands.command()
+    async def resume(self, inter):
+        inter.guild.voice_client.resume()
+        await inter.response.send_message("Снято с паузы")
 
-    @commands.command()
-    async def disconnect(self, ctx):
-        await ctx.guild.voice_client.disconnect()
+    @app_commands.command()
+    async def disconnect(self, inter):
+        await inter.guild.voice_client.disconnect()
+        await inter.response.send_message("Отключено")
 
-    @commands.command()
-    async def next(self, ctx):
-        self.next_(ctx)
+    @app_commands.command()
+    async def next(self, inter):
+        self.next_(inter)
 
-    def next_(self, ctx, error=None):
-        ctx.guild.voice_client.stop()
-        query = self.query[str(ctx.author.voice.channel.id)]
+    def next_(self, inter, error=None):
+        inter.guild.voice_client.stop()
+        query = self.query[str(inter.user.voice.channel.id)]
         query["music_pos"] = query["music_pos"] + 1
+        logger.debug((len(query["query"]), query["music_pos"]))
         if len(query["query"]) < query["music_pos"]:
             try:
-                asyncio.create_task(self.end_of_query_(ctx))
+                asyncio.run(self.end_of_query_(inter))
+                # asyncio.create_task(self.end_of_query_(inter))
             except:
                 pass
             return
 
         url = query["query"][query["music_pos"]]
-        self.play_(ctx, url)
+        self.play_(inter, url)
 
 
 async def setup(bot):
