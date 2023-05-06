@@ -1,9 +1,13 @@
+.venv/
+__pycache__/
+cogs/__pycache__/
+
 Stickers/
+tmp/
+
+demresult.jpg
 Cat.log
 test.*
 temp.*
-tmp/
-cogs/__pycache__/
-__pycache__/
 yarxi.db
-.venv/
+
