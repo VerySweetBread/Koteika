@@ -150,52 +150,6 @@ notification = {}
 players = {}
 
 
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-
-
-
-@tasks.loop(seconds=5)
-async def change_activity():
-    #await asyncio.sleep(5)
-    #await bot.change_presence(activity=discord.Activity(name='обработку российского ботнета',
-    #                                                    type=discord.ActivityType.playing))
-    await asyncio.sleep(5)
-    await bot.change_presence(activity=discord.Activity(name=f'на {len(bot.guilds)} сервер(a/ов)',
-                                                        type=discord.ActivityType.watching))
-    #await asyncio.sleep(5)
-    #await bot.change_presence(activity=discord.Activity(name='радость и счастье',
-    #                                                    type=discord.ActivityType.streaming))
-    #await asyncio.sleep(5)
-    #await bot.change_presence(activity=discord.Activity(name='мяукании в пустототе',
-    #                                                    type=discord.ActivityType.competing))
-    await asyncio.sleep(5)
-    await bot.change_presence(activity=discord.Activity(name=f'на {bot.code_lines} строк и {bot.code_size//2**10} Кб '
-                                                             'сыворотки костылей, велосипедов и кода',
-                                                        type=discord.ActivityType.watching))
-
-    seed(int(time()))
-
-
-# @tasks.loop(seconds=10)
-# async def v_delete():
-#     v_channels = get(get(bot.guilds, id=701726806377496587)
-#                      .categories, id=733787908129030194) \
-#         .voice_channels
-#
-#     for channel in v_channels:
-#        if channel.id != 733788167236223056:
-#             if not channel.members:
-#                 await channel.delete()
-
-
 @bot.event
 async def on_ready():
     bot.voice_counter = {}
@@ -248,13 +202,6 @@ async def on_ready():
 
     logger.info('Я живой, блин!')
 
-    #for guild in bot.guilds:
-    #    for member in guild.members:
-    #        add_user_to_DB(member)
-
-    #change_activity.start()
-#     v_delete.start()
-
 
 async def on_message_handler(message):
     channel = message.channel
@@ -282,195 +229,6 @@ async def mirror(ctx, time: int, *, atr):
         await ctx.send(atr)
 
 CSF = discord.Object(id=822157545622863902)
-
-# @bot.hybrid_command()
-# @app_commands.guilds(CSF)
-async def help(ctx, *, search: typing.Optional[str] = None):
-    region = db.members.find_one({"id": ctx.author.id})["language"]
-
-    color = ctx.guild.me.color
-    if color == discord.Color.default():
-        color = discord.Color(0xaaffaa)
-
-    if search is not None:
-        if len(search.split('.')) == 2:
-            search, subcommand = search.split('.')
-        else:
-            subcommand = None
-
-    def usage(c):
-        if dict(c.clean_params) == {}:
-            return "Не требует параметров"
-        else:
-            usage = ""
-            c_args = dict(c.clean_params)
-            for key in c_args.keys():
-                option = False
-                types = []
-                name = key
-
-                if type(c_args[key].annotation) is typing._GenericAlias:
-                    if type(None) in c_args[key].annotation.__args__:
-                        option = True
-                    types = [i.__name__ for i in c_args[key].annotation.__args__]
-                else:
-                    types = [c_args[key].annotation.__name__]
-
-                try:
-                    types.remove('NoneType')
-                except ValueError:
-                    pass
-                if types[0] == "_empty" or types: types = ["???"]
-
-                if option:
-                    if c_args[key].default in (_empty, None):
-                        usage += f"({name} [{', '.join(types)}]) "
-                    else:
-                        usage += f"({name} = {c_args[key].default} [{', '.join(types)}]) "
-                else:
-                    if c_args[key].default in (_empty, None):
-                        usage += f"<{name} [{', '.join(types)}]> "
-                    else:
-                        usage += f"<{name} = {c_args[key].default} [{', '.join(types)}]> "
-
-            return usage
-
-    if search is None:
-        categories = discord.Embed(title="Категории", color=color)
-        for cog in bot.cogs.keys():
-            categories.add_field(name=cog,
-                                 value=bot.cogs[cog].description
-                                 if bot.cogs[cog].description != ''
-                                 else "Без описания",
-                                 inline=False)
-
-        embeds = [categories]
-
-        e = discord.Embed(title="Без категории", color=color)
-        for command in [c for c in bot.commands if c.cog is None and not c.hidden]:
-            if type(command) == discord.ext.commands.core.Group:
-                name = f"■ {translate(command.name, region)}"
-            elif type(command) == discord.ext.commands.core.Command:
-                name = f"● {translate(command.name, region)}"
-            e.add_field(name=name,
-                        value=translate(command.brief, region)
-                        if command.brief != '' and command.brief is not None
-                        else "Без описания",
-                        inline=False)
-        embeds.append(e)
-
-        for cog in bot.cogs.keys():
-            e = discord.Embed(title=cog, description=bot.cogs[cog].description, color=color)
-
-            for command in [c for c in bot.commands if c.cog is bot.cogs[cog] and not c.hidden]:
-                if type(command) == discord.ext.commands.core.Group:
-                    name = f"■ {translate(command.name, region)}"
-                elif type(command) == discord.ext.commands.core.Command:
-                    name = f"● {translate(command.name, region)}"
-                e.add_field(name=name,
-                            value=translate(command.brief, region) if command.brief != '' else "Без описания",
-                            inline=False)
-            embeds.append(e)
-        embeds_ = []
-
-        for i in range(len(embeds)):
-            e = embeds[i].to_dict()
-            e["description"] = f"`{i + 1}/{len(embeds)}`"
-            embeds_.append(discord.Embed.from_dict(e))
-
-        embeds = embeds_
-
-        embeds[0].set_footer(text=f"Для помощи по категориям введите `{ctx.prefix}help <категория>`\n"
-                                  f"Для помощи по группам введите `{ctx.prefix}help <группа>`\n"
-                                  "Имя категорий всегда с заглавной буквы,в отличии от комманд")
-        for e in embeds[1:]:
-            e.set_footer(text="● - обычные комманды\n■ - комманды с подпунктами (группы)")
-
-        paginator = DiscordUtils.Pagination.CustomEmbedPaginator(ctx, remove_reactions=True)
-        paginator.add_reaction('⏮️', "first")
-        paginator.add_reaction('⏪', "back")
-        paginator.add_reaction('🔐', "lock")
-        paginator.add_reaction('⏩', "next")
-        paginator.add_reaction('⏭️', "last")
-        await paginator.run(embeds)
-
-    else:
-        # Сначала находим категорию
-        cog = [cog for cog in bot.cogs if cog == search]
-        if cog:
-            cog = cog[0]
-            e = discord.Embed(title=cog, description=bot.cogs[cog].description, color=color)
-
-            for command in [c for c in bot.commands if c.cog is bot.cogs[cog]]:
-                if type(command) == discord.ext.commands.core.Group:
-                    name = f"■ {translate(command.name, region)}"
-                elif type(command) == discord.ext.commands.core.Command:
-                    name = f"● {translate(command.name, region)}"
-                e.add_field(name=name,
-                            value=translate(command.brief, region) if command.brief != '' else "Без описания",
-                            inline=False)
-
-            await ctx.send(embed=e)
-        else:
-            command = [command for command in bot.commands if command.name == search]
-            if command:
-                command = command[0]
-
-                # checks = ""
-                #
-                # for c in  command.checks:
-                #     try:
-                #         checks += "+" if await c(ctx) else "-"
-                #     except:
-                #         checks += "+" if c(ctx) else "-"
-                #     checks += " " + c.__name__
-                #     checks += "\n"
-                #
-                # if command.cog is not None:
-                #     checks = command.cog.cog_check(ctx).__name__ + "\n" + checks
-                #     try:
-                #         checks = "+ " if await command.cog.cog_check(ctx) else "- " + checks
-                #     except:
-                #         checks = "+ " if command.cog.cog_check(ctx) else "- " + checks
-                #
-                # checks = "```diff\n" + checks + "```"
-                e = discord.Embed(title=command.name,
-                                  description=f"""Другие имена: {', '.join(command.aliases)
-                                  if ', '.join(command.aliases) != ''
-                                  else 'Отсутствуют'}\n"""
-                                              f"Краткое описание: {translate(command.brief, region)}\n"
-                                              f"Использование: \n  `{usage(command)}`\n"
-                                              f"Описание: \n  {translate(command.description, region)}\n"
-                                              f"Родитель: {command.parent.__name__ if command.parent is not None else 'Отсутствует'}\n" 
-                                              f"Категория: {command.cog_name if command.cog is not None else 'Отсутствует'}\n"
-                                              # f"Чеки: {checks}\n"
-                                              f"Спрятан: {command.hidden}\n",
-                                  color=color)
-                if type(command) == discord.ext.commands.core.Group:
-                    if subcommand is None:
-                        for subcommand in command.commands:
-                            e.add_field(name=subcommand.name, value=subcommand.brief
-                                if subcommand.brief is not None and subcommand.brief != ''
-                                else "Без описания")
-                    else:
-                        command = [command for command in command.commands if command.name == subcommand]
-                        if command:
-                            command = command[0]
-                            e = discord.Embed(title=command.name,
-                                              description=f"Другие имена: {', '.join(command.aliases)}\n"
-                                                          f"Краткое описание: {translate(command.brief, region)}\n"
-                                                          f"Использование: \n  `{usage(command)}`\n"
-                                                          f"Описание: \n  {translate(command.description, region)}\n"
-                                                          f"Родитель: {command.parent if command.parent is not None else 'Отсутствует'}\n"
-                                                          f"Категория: {command.cog_name if command.cog is not None else 'Отсутствует'}\n"
-                                                          # f"Чеки: {checks}\n"
-                                                          f"Спрятан: {command.hidden}\n",
-                                              color=color)
-                        else:
-                            await ctx.send("Субкомманда не найдена")
-                await ctx.send(embed=e)
-            else:
-                await ctx.send("Ничего не найдено")
 
 
 @bot.command()
@@ -670,17 +428,6 @@ async def cmd(ctx, *, command):
         logger.error(repr(e))
 
 
-@bot.command(brief="Логи")
-@commands.check(is_secret)
-async def log(ctx):
-    try:
-        a = subprocess.check_output('cat /home/pi/Koteika/Cat.log', shell=True)
-        await ctx.send('```' + a.decode('utf-8')[-1994:] + '```')
-    except:
-        a = subprocess.check_output('cat /home/pi/Koteika/Cat.log', shell=True)
-        await ctx.send('```' + a.decode('utf-8') + '```')
-
-
 @bot.command(aliases=["vmute", "v_mute", "v_m", "vm"], brief="Выключает микрфоны всех участников ГК")
 @commands.has_guild_permissions(administrator=True)
 async def voice_mute(ctx):
@@ -717,12 +464,6 @@ async def voice_unmute(ctx):
     await ctx.message.delete()
 
 
-@bot.command(name="сайт", brief="Выводит сайт котика (не доделан)")
-async def page(ctx):
-    await ctx.message.delete()
-    await ctx.send("https://miyakobot.ru/koteika")
-
-
 @bot.command(brief="Выводит права участника сервера (по умолчанию - кота)")
 async def perms(ctx, user: typing.Union[discord.Member, int] = None):
     if user is None:
@@ -752,15 +493,6 @@ async def perms(ctx, user: typing.Union[discord.Member, int] = None):
         out += i + '\n'
 
     await ctx.send('```diff\n' + out + '```')
-
-
-# @bot.command()
-# async def levels(ctx):
-#     e = discord.Embed(title="Работяги:")
-#     for level in ('secret', 'white', 'gray', 'black'):
-#         e.add_field(name=level, value='\n'.join(
-#             [i[0] for i in cursor.execute(f'''SELECT name FROM members WHERE access_level="{level}"''').fetchall()]))
-#     await ctx.send(embed=e)
 
 
 @bot.command()
