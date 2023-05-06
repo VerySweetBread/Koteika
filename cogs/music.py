@@ -32,14 +32,7 @@ class Music(commands.Cog, name="Музыка"):
         audio_source = discord.FFmpegPCMAudio(URL, **FFMPEG_OPTIONS)
         inter.guild.voice_client.play(audio_source, after=lambda error: self.next_(inter, error))
 
-        try:    
-            asyncio.create_task(self.send_embed_(inter, info, url))
-        except:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            loop.set_debug(True)
-            loop.run_until_complete(self.send_embed_(inter, info, url))
-            loop.stop()
+        asyncio.run_coroutine_threadsafe(self.send_embed_(inter, info, url), self.bot.loop)
 
     async def send_embed_(self, inter, info, url):
         embed = discord.Embed (
@@ -52,18 +45,18 @@ class Music(commands.Cog, name="Музыка"):
             url=info["uploader_url"]
         )
         embed.set_thumbnail( url=info["thumbnail"] )
-        await inter.response.send_message(embed=embed)
+        try:
+            await inter.response.send_message(embed=embed)
+        except:
+            await inter.channel.send(embed=embed)
 
     async def end_of_query_(self, inter):
         await inter.response.send_message("В очереди больше не осталось песен")
 
-
     @app_commands.command(description="Plays music from popular platforms")
-    @app_commands.describe(
-        url="URL from Youtube/RuTube and other platforms",
-        query="Add music to query"
-    )
-    async def play(self, inter, url: str):        
+    @app_commands.describe(url="URL from Youtube/RuTube and other platforms")
+    async def play(self, inter, url: str):
+        logger.debug(asyncio.get_running_loop())
         channel = inter.user.voice.channel
 
         if inter.user.voice is None:
@@ -84,19 +77,18 @@ class Music(commands.Cog, name="Музыка"):
         if str(channel.id) not in self.query.keys():
             self.query[str(channel.id)] = {
                 "requester_id": inter.user.id,
-                "music_pos": -1,
+                "music_pos": 0,
                 "query": [],
                 "context": inter
             }
+        self.query[str(channel.id)]["query"].append(url)
 
         if client.is_playing() or client.is_paused():
-            if query:
-                self.query[str(channel.id)]["query"].append(url)
-                logger.debug("\n".join(self.query[str(channel.id)]['query']))
-                await inter.response.send_message("Добавлена новая песня в очередь")
-                return
-            else:
-                inter.guild.voice_client.stop()
+            logger.debug("\n".join(self.query[str(channel.id)]['query']))
+            await inter.response.send_message("Добавлена новая песня в очередь")
+            return
+        else:
+            inter.guild.voice_client.stop()
 
         self.play_(inter, url)
         
@@ -125,18 +117,16 @@ class Music(commands.Cog, name="Музыка"):
         self.next_(inter)
 
     def next_(self, inter, error=None):
+        logger.debug("\n....".join(["Query:"]+self.query[str(inter.user.voice.channel.id)]['query']))
+
         inter.guild.voice_client.stop()
         query = self.query[str(inter.user.voice.channel.id)]
         query["music_pos"] = query["music_pos"] + 1
         logger.debug((len(query["query"]), query["music_pos"]))
-        if len(query["query"]) < query["music_pos"]:
-            try:
-                asyncio.run(self.end_of_query_(inter))
-                # asyncio.create_task(self.end_of_query_(inter))
-            except:
-                pass
-            return
+        if len(query["query"]) == query["music_pos"]:
+            asyncio.run_coroutine_threadsafe(self.end_of_query_(inter), self.bot.loop)
 
+        logger.debug([query["music_pos"]])
         url = query["query"][query["music_pos"]]
         self.play_(inter, url)
 
