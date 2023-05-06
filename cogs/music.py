@@ -24,7 +24,7 @@ class Music(commands.Cog, name="Музыка"):
         except:
             URL = url
             logger.debug(URL)
-        with open("/home/pi/temp", 'w') as f:
+        with open("tmp/tmp.log", 'w') as f:
             f.write(dumps(info))
         audio_source = discord.FFmpegPCMAudio(URL, **FFMPEG_OPTIONS)
         ctx.guild.voice_client.play(audio_source, after=lambda error: self.next_(ctx, error))
