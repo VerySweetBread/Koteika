@@ -384,7 +384,7 @@ class Economic(commands.Cog, name="Экономика"):
             await inter.response.send_message("Недостаточно данных! Попробуйте завтра")
             return
 
-        l = len(data_) if len(data_) < 10 else 10
+        l = min(len(data_), 10)
 
         MAX_COLONS = 25
 
@@ -421,7 +421,7 @@ class Economic(commands.Cog, name="Экономика"):
                               " | ".join([f"{data[k][0]} {data[k][1]}" for k in data.keys() if k != category]) + 
                               "\n" + str(int(data[category][2]/max_val*100)) + '% '+  
                               "█" * int(data[category][2]/max_val*MAX_COLONS) +
-                              "▌" * int((data[category][2]/max_val*MAX_COLONS)%2) + '')
+                              "▌" * int((data[category][2]/max_val*MAX_COLONS)%2))
 
         await inter.response.send_message(embed=e)
 
