@@ -13,6 +13,7 @@ class Stickers(commands.Cog, name="Стикеры"):
         self.bot = bot
 
     @commands.command(aliases=["sl"])
+    @app_commands.guilds(discord.Object(822157545622863902))
     async def sticker_list(self, ctx):
         if ctx.guild is not None:
             color = ctx.guild.me.color
@@ -25,22 +26,6 @@ class Stickers(commands.Cog, name="Стикеры"):
         list_ = listdir(dir)
         embed = discord.Embed(title="Стикеры", description="\n".join([f"{i+1}: {list_[i]}" for i in range(len(list_))]), color=color)
         await ctx.send(embed=embed)
-
-    @commands.command(name="send_sticker", aliases=["ss"])
-    async def _send_sticker(self, ctx, sticker: int, *, content=""):
-        if ctx.guild is not None:
-            color = ctx.guild.me.color
-            if color == discord.Color.default():
-                color = discord.Color(0xaaffaa)
-        else:
-            color = discord.Color(0xaaffaa)
-
-        embed = discord.Embed(color=color)
-        embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar)
-        with open(join(dir, listdir(dir)[sticker-1]), 'rb') as f:
-            await ctx.send(content, file=discord.File(f), embed=embed, reference=ctx.message.reference)
-            try: await ctx.message.delete()
-            except: pass
 
     @app_commands.command(name="sticker", description="Отправляет стикер")
     @app_commands.guilds(discord.Object(822157545622863902))

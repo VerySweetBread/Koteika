@@ -15,12 +15,6 @@ class Slashes(Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @app_commands.command()
-    #@logger.catch
-    async def error(self, inter):
-        0/0
-
-    
     @app_commands.command(description="About this bot")
     async def about(self, inter):
         info_text = await self.bot.tree.translator.translate(

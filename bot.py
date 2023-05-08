@@ -220,14 +220,6 @@ async def on_message(message):
     await bot.process_commands(message)
     await on_message_handler(message)
 
-
-@bot.command(pass_content=True)
-async def mirror(ctx, time: int, *, atr):
-    await ctx.message.delete()
-    async with ctx.typing():
-        await asyncio.sleep(time)
-        await ctx.send(atr)
-
 CSF = discord.Object(id=822157545622863902)
 
 
@@ -372,24 +364,6 @@ async def change_level(ctx, user: typing.Union[discord.Member, int], level):
         await ctx.message.add_reaction(XX)
         raise TypeError
     db.members.update_one({"id": id_}, {"$set": {"access_level": level}})
-    await ctx.message.add_reaction(check_mark)
-
-    await asyncio.sleep(3)
-    await ctx.message.delete()
-
-
-@bot.command()
-async def change_lang(ctx, user: typing.Union[discord.Member, int], lang):
-    lang = lang.upper()
-    if 'int' in str(type(user)):
-        id_ = user
-    else:
-        id_ = user.id
-
-    if not lang in ("RU", "EN"):
-        await ctx.message.add_reaction(XX)
-        raise TypeError
-    db.members.update_one({"id": id_}, {"$set": {"language": lang}})
     await ctx.message.add_reaction(check_mark)
 
     await asyncio.sleep(3)
