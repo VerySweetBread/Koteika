@@ -425,41 +425,6 @@ class Economic(commands.Cog, name="Экономика"):
 
         await inter.response.send_message(embed=e)
 
-    @commands.hybrid_command(brief="Experience gain statistics")
-    async def graph(self, ctx, user: discord.Member = None):
-        if user is None:
-            user = ctx.author.id
-        else:
-            user = user.id
-
-        if self.bot.get_user(user).bot:
-            await ctx.reply("У ботов нет опыта. Они всемогущи")
-            return
-
-        db_ = db.members
-        info = db_.find_one({"id": user})['guild_stat'][str(ctx.guild.id)]['history']['hour']
-        data =  [info[key] for key in info.keys()]
-        fig, ax = plt.subplots()
-        ax.plot(data, label=self.bot.get_user(user).name)
-        ax.grid(True)
-        ax.set_ylabel('Опыт', color=(1.00, 1.00, 1.00))
-        ax.set_xlabel('Время (ч)', color=(1.00, 1.00, 1.00))
-        ax.legend(loc='upper left')
-        for label in ax.get_yticklabels():
-            label.set_color((1.00, 1.00, 1.00))
-        ax.set_facecolor((.12, .12, .12))
-        fig.patch.set_facecolor((.14, .14, .14))
-        for label in ax.get_xticklabels():
-            try: label.set_text(datetime.fromtimestamp(int(label.get_text())).strftime('%d.%m %H:00'))
-            except: pass
-            label.set_color((1, 1, 1))
-        fig.savefig('temp.png')
-        for label in ax.get_xticklabels():
-            label.set_color((1, 1, 1))
-        with open('temp.png', 'rb') as f:
-          f = discord.File(f)
-          await ctx.send(file=f)
-
     @app_commands.command(description="Comparison of exp with other members")
     @discord.ui.button(label="<<")
     @discord.ui.button(label=">>", disabled=True)
@@ -508,9 +473,6 @@ class Economic(commands.Cog, name="Экономика"):
         ax.set_xlabel('Время (ч)')
         ax.legend(loc='upper left')
 
-        for label in ax.get_xticklabels():
-            label.set_color((1, 1, 1))
-
         labels = [datetime.fromtimestamp(int(text)).strftime('%d.%m %H:%M') for text in ax.get_xticks()]
         ax.set_xticklabels(labels)
         fig.autofmt_xdate()
@@ -525,10 +487,10 @@ class Economic(commands.Cog, name="Экономика"):
         ax.spines['left'].set_color('#303030')
         ax.spines['right'].set_color('#303030')
 
-        fig.savefig('temp.png')
-        with open('temp.png', 'rb') as f:
-            f = discord.File(f)
-            await inter.response.send_message(file=f)
+        fig.savefig(f'tmp/{inter.id}.png')
+        with open(f'tmp/{inter.id}.png', 'rb') as f:
+            await inter.response.send_message(file=discord.File(f))
+        delete(f'tmp/{inter.id}.png')
 
 
     @app_commands.command()
@@ -567,8 +529,6 @@ class Economic(commands.Cog, name="Экономика"):
 
             ax.plot(list(map(int, info.keys()))[-len(vals):], vals, marker=marker, label=self.bot.get_user(user['id']).name)
             
-        for lbl in ax.get_xticklabels():
-            lbl.set_color((1, 1, 1))
         labels = [datetime.fromtimestamp(int(text)).strftime('%d.%m %H:%M') for text in ax.get_xticks()]
         ax.set_xticklabels(labels)
         fig.autofmt_xdate()
@@ -586,6 +546,7 @@ class Economic(commands.Cog, name="Экономика"):
         fig.savefig(f'tmp/{inter.id}.png')
         with open(f'tmp/{inter.id}.png', 'rb') as f:
             await inter.response.send_message(file=discord.File(f))
+        delete(f'tmp/{inter.id}.png')
 
 # @logger.catch
 async def setup(bot):
