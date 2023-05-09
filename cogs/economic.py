@@ -277,7 +277,7 @@ class Economic(commands.Cog, name="Экономика"):
             return
 
         user_data = db.members.find_one({"id": user.id})
-        if user_data is None:
+        if user_data is None or str(inter.guild.id) not in user_data['guild_stat'].keys():
             await inter.response.send_message("Об этом пользователе информации пока нет")
             return
 
@@ -359,7 +359,7 @@ class Economic(commands.Cog, name="Экономика"):
     ])
     # @logger.catch
     async def top(self, inter, category: Choice[str] = None):
-        if category is None:
+        if category is None   :
             category = "Опыт"
         else:
             category = category.value
@@ -530,6 +530,62 @@ class Economic(commands.Cog, name="Экономика"):
             f = discord.File(f)
             await inter.response.send_message(file=f)
 
+
+    @app_commands.command()
+    @app_commands.choices(period=[
+        Choice(name='Per the entire period',    value=-1),
+        Choice(name='Per month',                value=24*30),
+        Choice(name='Per week',                 value=24*7),
+        Choice(name='Per day',                  value=24)
+    ])
+    async def top_graph(self, inter, period: Choice[int]=-1):
+        if period != -1: period = period.value
+
+        ts = datetime.now().timestamp()
+
+        db_mem = db.members
+        data = list(db_mem.find({f"guild_stat.{inter.guild.id}": {"$exists": True}}).sort(f"guild_stat.{inter.guild.id}.exp", -1))[:10]
+
+        if not data:
+            await inter.response.send_message("Недостаточно данных. Попробуйте завтра")
+            return
+
+        fig, ax = plt.subplots(figsize=(8, 5))
+        ax.grid(True)
+        ax.set_ylabel('Опыт', color=(1., 1., 1.))
+        ax.set_xlabel('Время', color=(1., 1., 1.))
+        # ax.set_facecolor((.12, .12, .12))
+        marker = '.' if -1 < period <= 24 else ''
+
+        for user in data:
+            info = user['guild_stat'][str(inter.guild.id)]['history']['hour']
+
+            if period == -1:
+                vals = list(info.values())
+            else:
+                vals = [info[key] for key in info.keys() if int(key) >= ts-period*60**2]
+
+            ax.plot(list(map(int, info.keys()))[-len(vals):], vals, marker=marker, label=self.bot.get_user(user['id']).name)
+            
+        for lbl in ax.get_xticklabels():
+            lbl.set_color((1, 1, 1))
+        labels = [datetime.fromtimestamp(int(text)).strftime('%d.%m %H:%M') for text in ax.get_xticks()]
+        ax.set_xticklabels(labels)
+        fig.autofmt_xdate()
+
+        ax.legend().get_frame().set_boxstyle('Round', pad=.2, rounding_size=1)
+        ax.legend().get_frame().set_linewidth(.0)
+        ax.xaxis.set_ticks_position('none')
+        ax.yaxis.set_ticks_position('none')
+
+        ax.spines['bottom'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+        ax.spines['left'].set_visible('#303030')
+        ax.spines['right'].set_visible('#303030')
+
+        fig.savefig(f'tmp/{inter.id}.png')
+        with open(f'tmp/{inter.id}.png', 'rb') as f:
+            await inter.response.send_message(file=discord.File(f))
 
 # @logger.catch
 async def setup(bot):
