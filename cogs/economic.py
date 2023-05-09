@@ -4,6 +4,7 @@ import typing
 import discord
 import schedule
 
+from os     import remove
 from bot    import db
 from loguru import logger
 from random import randint as rint
@@ -269,7 +270,7 @@ class Economic(commands.Cog, name="Экономика"):
         return data
 
     @app_commands.command(description="View balance and level")
-    async def rank(self, inter, user: discord.Member = None):
+    async def rank(self, inter: discord.Interaction, user: discord.Member = None):
         if user is None: user = inter.user
 
         if self.bot.get_user(user.id).bot:
@@ -358,7 +359,7 @@ class Economic(commands.Cog, name="Экономика"):
         Choice(name='Time in voice channel',    value="Время в войсе")
     ])
     # @logger.catch
-    async def top(self, inter, category: Choice[str] = None):
+    async def top(self, inter: discord.Interaction, category: Choice[str] = None):
         if category is None   :
             category = "Опыт"
         else:
@@ -431,7 +432,7 @@ class Economic(commands.Cog, name="Экономика"):
         Choice(name='Per month',                value=24*30),
         Choice(name='Per day',                  value=24)
     ])
-    async def dif_graph(self, discord.Interaction, user1: discord.Member, user2: discord.Member = None, period: Choice[int] = -1):
+    async def dif_graph(self, inter: discord.Interaction, user1: discord.Member, user2: discord.Member = None, period: Choice[int] = -1):
         if period != -1: period = period.value
 
         ts = datetime.now().timestamp()
@@ -488,7 +489,7 @@ class Economic(commands.Cog, name="Экономика"):
         fig.savefig(f'tmp/{inter.id}.png')
         with open(f'tmp/{inter.id}.png', 'rb') as f:
             await inter.response.send_message(file=discord.File(f), view=self)
-        delete(f'tmp/{inter.id}.png')
+        remove(f'tmp/{inter.id}.png')
 
 
     @app_commands.command()
@@ -498,7 +499,7 @@ class Economic(commands.Cog, name="Экономика"):
         Choice(name='Per week',                 value=24*7),
         Choice(name='Per day',                  value=24)
     ])
-    async def top_graph(self, inter, period: Choice[int]=-1):
+    async def top_graph(self, inter: discord.Interaction, period: Choice[int]=-1):
         if period != -1: period = period.value
 
         ts = datetime.now().timestamp()
@@ -529,7 +530,7 @@ class Economic(commands.Cog, name="Экономика"):
             
         labels = [datetime.fromtimestamp(int(text)).strftime('%d.%m %H:%M') for text in ax.get_xticks()]
         ax.set_xticklabels(labels)
-        fig.autofmt_xdate()
+        # fig.autofmt_xdate()
 
         ax.legend().get_frame().set_boxstyle('Round', pad=.2, rounding_size=1)
         ax.legend().get_frame().set_linewidth(.0)
@@ -544,7 +545,7 @@ class Economic(commands.Cog, name="Экономика"):
         fig.savefig(f'tmp/{inter.id}.png')
         with open(f'tmp/{inter.id}.png', 'rb') as f:
             await inter.response.send_message(file=discord.File(f))
-        delete(f'tmp/{inter.id}.png')
+        remove(f'tmp/{inter.id}.png')
 
 # @logger.catch
 async def setup(bot):
