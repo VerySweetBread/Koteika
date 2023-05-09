@@ -12,11 +12,7 @@ class ErrHandler(Cog):
         bot.tree.error(self.on_error)
 
     async def on_error(self, inter, error):
-        logger.error(error)
-        logger.warning(print_exc())
-        info = exc_info() 
-        logger.error(info)
-        logger.error(print_tb(info[2]))
+        logger.error(print_exc())
 
         errors_text = await self.bot.tree.translator.translate(
             app_commands.locale_str("errors_text"),

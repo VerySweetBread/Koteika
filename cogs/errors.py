@@ -1,6 +1,7 @@
 import discord
 from discord.ext    import commands
 from loguru         import logger
+from traceback      import print_tb
 
 class Errors(commands.Cog):
     def __init__(self, bot):
@@ -27,7 +28,8 @@ class Errors(commands.Cog):
         elif isinstance(error, commands.CheckFailure):
             await ctx.send('Команда недоступна')
         else:
-            logger.error(error.__traceback__)
+            logger.debug(error)
+            logger.error(print_tb(error))
                     # missing = [perm.replace('_', ' ').replace('guild', 'server').title() for perm in error.missing_perms]
             # if len(missing) > 2:
             #     fmt = '{}, и {}'.format("**, **".join(missing[:-1]), missing[-1])
