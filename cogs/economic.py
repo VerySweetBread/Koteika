@@ -426,14 +426,12 @@ class Economic(commands.Cog, name="Экономика"):
         await inter.response.send_message(embed=e)
 
     @app_commands.command(description="Comparison of exp with other members")
-    @discord.ui.button(label="<<")
-    @discord.ui.button(label=">>", disabled=True)
     @app_commands.choices(period=[
         Choice(name='Per the entire period',    value=-1),
         Choice(name='Per month',                value=24*30),
         Choice(name='Per day',                  value=24)
     ])
-    async def dif_graph(self, inter, user1: discord.Member, user2: discord.Member = None, period: Choice[int] = -1):
+    async def dif_graph(self, discord.Interaction, user1: discord.Member, user2: discord.Member = None, period: Choice[int] = -1):
         if period != -1: period = period.value
 
         ts = datetime.now().timestamp()
@@ -489,7 +487,7 @@ class Economic(commands.Cog, name="Экономика"):
 
         fig.savefig(f'tmp/{inter.id}.png')
         with open(f'tmp/{inter.id}.png', 'rb') as f:
-            await inter.response.send_message(file=discord.File(f))
+            await inter.response.send_message(file=discord.File(f), view=self)
         delete(f'tmp/{inter.id}.png')
 
 
