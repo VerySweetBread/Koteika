@@ -13,6 +13,7 @@ from discord.ext            import commands, tasks
 from discord.app_commands   import Choice
 from discord.app_commands   import TranslationContextLocation as trans_loc
 from datetime   import datetime
+from matplotlib import ticker
 from matplotlib import pyplot as plt
 from cogs.emojis    import chocolate
 
@@ -430,6 +431,7 @@ class Economic(commands.Cog, name="Экономика"):
     @app_commands.choices(period=[
         Choice(name='Per the entire period',    value=-1),
         Choice(name='Per month',                value=24*30),
+        Choice(name='Per week',                 value=24*7),
         Choice(name='Per day',                  value=24)
     ])
     async def dif_graph(self, inter: discord.Interaction, user1: discord.Member, user2: discord.Member = None, period: Choice[int] = -1):
@@ -472,9 +474,19 @@ class Economic(commands.Cog, name="Экономика"):
         ax.set_xlabel('Время (ч)')
         ax.legend(loc='upper left')
 
-        labels = [datetime.fromtimestamp(int(text)).strftime('%d.%m %H:%M') for text in ax.get_xticks()]
-        ax.set_xticklabels(labels)
-        fig.autofmt_xdate()
+        ax.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: datetime.fromtimestamp(x).strftime('%d.%m')))
+
+        if period == 24:
+            ax.xaxis.set_major_locator(ticker.IndexLocator(base=60*60*5, offset=0))
+            ax.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: datetime.fromtimestamp(x).strftime('%Hh')))
+        elif period == 24*7:
+            ax.xaxis.set_major_locator(ticker.IndexLocator(base=60*60*24, offset=0))
+            ax.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: datetime.fromtimestamp(x).strftime('%d.%m')))
+        else:
+            ax.xaxis.set_major_locator(ticker.IndexLocator(base=60*60*24*7, offset=0))
+            ax.xaxis.set_minor_locator(ticker.IndexLocator(base=60*60*24, offset=0))
+            ax.xaxis.set_minor_formatter(ticker.FuncFormatter(lambda x, pos: datetime.fromtimestamp(x).strftime('%d')))
+
 
         ax.legend().get_frame().set_boxstyle('Round', pad=0.2, rounding_size=1)
         ax.legend().get_frame().set_linewidth(0.0)
@@ -488,7 +500,7 @@ class Economic(commands.Cog, name="Экономика"):
 
         fig.savefig(f'tmp/{inter.id}.png')
         with open(f'tmp/{inter.id}.png', 'rb') as f:
-            await inter.response.send_message(file=discord.File(f), view=self)
+            await inter.response.send_message(file=discord.File(f))
         remove(f'tmp/{inter.id}.png')
 
 
@@ -527,10 +539,21 @@ class Economic(commands.Cog, name="Экономика"):
                 vals = [info[key] for key in info.keys() if int(key) >= ts-period*60**2]
 
             ax.plot(list(map(int, info.keys()))[-len(vals):], vals, marker=marker, label=self.bot.get_user(user['id']).name)
+        
+        ax.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: datetime.fromtimestamp(x).strftime('%d.%m')))
+
+        if period == 24:
+            ax.xaxis.set_major_locator(ticker.IndexLocator(base=60*60*5, offset=0))
+            ax.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: datetime.fromtimestamp(x).strftime('%Hh')))
+        elif period == 24*7:
+            ax.xaxis.set_major_locator(ticker.IndexLocator(base=60*60*24, offset=0))
+            ax.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: datetime.fromtimestamp(x).strftime('%d.%m')))
+        else:
+            ax.xaxis.set_major_locator(ticker.IndexLocator(base=60*60*24*7, offset=0))
+            ax.xaxis.set_minor_locator(ticker.IndexLocator(base=60*60*24, offset=0))
+            ax.xaxis.set_minor_formatter(ticker.FuncFormatter(lambda x, pos: datetime.fromtimestamp(x).strftime('%d')))
             
-        labels = [datetime.fromtimestamp(int(text)).strftime('%d.%m %H:%M') for text in ax.get_xticks()]
-        ax.set_xticklabels(labels)
-        # fig.autofmt_xdate()
+            # fig.autofmt_xdate()
 
         ax.legend().get_frame().set_boxstyle('Round', pad=.2, rounding_size=1)
         ax.legend().get_frame().set_linewidth(.0)
