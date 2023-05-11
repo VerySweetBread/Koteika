@@ -67,60 +67,47 @@ class Economic(commands.Cog, name="Экономика"):
                 )
 
                 if message.author.voice is not None:
-                    delta_exp = int(delta_exp / 10)
+                    delta_exp //= 10
                 delta_money = rint(1, 5)
 
                 # Глобальные опыт/уроень
                 db.members.update_one({"id": message.author.id},
-                                      {"$set": {"exp": data["exp"] + delta_exp}})  # Изменяем exp
+                                      {"$inc": {"exp": delta_exp}})  # Изменяем exp
                 data = db.members.find_one({"id": message.author.id})
                 if data is not None:
                     level = data["level"]
                     if level ** 2 * 50 + 5 <= data["exp"]:
                         db.members.update_one({"id": message.author.id},
-                                              {"$set": {"level": data["level"] + 1}})  # Изменяем level
+                                              {"$inc": {"level": 1}})  # Изменяем level
                         if data["level"]+1 >= data["max_level"]:
                             db.members.update_one({"id": message.author.id},
-                                                  {"$set": {
-                                                      "money": data["money"] + (level + 1) * delta_money}})  # Изменяем money
-                            db.members.update_one({"id": message.author.id},
-                                                  {"$set": {"max_level": data["level"] + 1}})  # Изменяем level
+                                                  {"$inc": {"money": (level + 1) * delta_money}})  # Изменяем money
 
 
                 # Локальные опыт/уровень
                 prefix = f"guild_stat.{message.guild.id}"
                 if str(message.guild.id) not in db.members.find_one({"id": message.author.id})["guild_stat"].keys():
                     db.members.update_many({"id": message.author.id},
-                                           {
-                                               "$set": {
-                                                   f"{prefix}.exp": 0,
-                                                   f"{prefix}.level": 0,
-                                                   f"{prefix}.secs_in_voice": 0,
-                                                   f"{prefix}.history": {
-                                                        "hour":     {},
-                                                        "day":      {},
-                                                        "siv_h":    {},
-                                                        "siv_d":    {}
-                                                    }
-                                               }
-                                           })  # Создаем в guild_stat поле для сервера
+                                           {"$set": {
+                                               f"{prefix}.exp": 0,
+                                               f"{prefix}.level": 0,
+                                               f"{prefix}.secs_in_voice": 0,
+                                               f"{prefix}.history": {
+                                                    "hour":     {},
+                                                    "day":      {},
+                                                    "siv_h":    {},
+                                                    "siv_d":    {}
+                                                }
+                                            }})  # Создаем в guild_stat поле для сервера
 
                 data = db.members.find_one({"id": message.author.id})["guild_stat"][str(message.guild.id)]
                 db.members.update_one({"id": message.author.id},
-                                      {
-                                          "$set": {
-                                              f"{prefix}.exp": data['exp'] + delta_exp
-                                          }
-                                      })
+                                      {"$inc": {f"{prefix}.exp": delta_exp}})
                 data = db.members.find_one({"id": message.author.id})["guild_stat"][str(message.guild.id)]
                 level = data["level"]
                 if level ** 2 * 50 + 5 <= data["exp"]:
                     db.members.update_one({"id": message.author.id},
-                                          {
-                                              "$set": {
-                                                  f"{prefix}.level": data['level'] + 1
-                                              }
-                                          })
+                                          {"$inc": {f"{prefix}.level": 1}})
                     data = db.guild_settings.find_one({"id": message.guild.id})
                     if data is not None and data['levelup'] == "send":
                         await message.reply(
@@ -160,15 +147,14 @@ class Economic(commands.Cog, name="Экономика"):
 
             # При выходе
             if after.channel is None:
-                #logger.info(f"{member.name}#{member.discriminator} вышел. В канале осталось {len(list(filter(lambda x: not x.bot, before.channel.members)))} человек")
                 try: del self.bot.voice_counter[str(member.id)]
-                except: pass #logger.info(f"У {member.name}#{member.discriminator} не было информации о времени захода в канал")
+                except: pass
 
 
     def voice_register(self, member, voice_state):
-        try: secs = (datetime.now() - self.bot.voice_counter[str(member.id)]).seconds
-        except: 
-            #logger.info(f"У {member.name}#{member.discriminator} не было информации о времени захода в канал")
+        if member.id in self.bot.voice_counter.keys(): 
+            secs = (datetime.now() - self.bot.voice_counter[member.id]).seconds
+        else: 
             secs = 0
 
         # TODO: Убрать нахуй эти ифы
@@ -184,11 +170,12 @@ class Economic(commands.Cog, name="Экономика"):
             k *= 2
         exp = int(secs // 5 * k)
         money = exp * rint(1, 5)
-        db.members.update_one({"id": member.id}, {"$inc": {
-            f"guild_stat.{member.guild.id}.secs_in_voice": secs,
-            f"guild_stat.{member.guild.id}.exp": exp,
-            "exp": exp,
-            "money": money
+        db.members.update_one({"id": member.id}, {
+            "$inc": {
+                f"guild_stat.{member.guild.id}.secs_in_voice": secs,
+                f"guild_stat.{member.guild.id}.exp": exp,
+                "exp": exp,
+                "money": money
             }})
 
         db.history.update_one(
@@ -196,7 +183,7 @@ class Economic(commands.Cog, name="Экономика"):
             {"$inc": {f'current.{datetime.now().hour}': exp}}
         )
 
-        self.bot.voice_counter[str(member.id)] = datetime.now()
+        self.bot.voice_counter[member.id] = datetime.now()
 
         logger.info(
             f"{member.name}#{member.discriminator}\n"
@@ -218,7 +205,7 @@ class Economic(commands.Cog, name="Экономика"):
             logger.debug(member_data["guild_stat"][str(member.guild.id)]["exp"], end="\t")
             db.members.update_one(
                 {"id": member.id},
-                {"$set": { "exp": member_data["exp"] + member_data["guild_stat"][str(member.guild.id)]["exp"] }}
+                {"$inc": {"exp": member_data["guild_stat"][str(member.guild.id)]["exp"]}}
             )
 
     @commands.Cog.listener()
@@ -232,7 +219,7 @@ class Economic(commands.Cog, name="Экономика"):
             logger.debug(member_data["guild_stat"][str(member.guild.id)]["exp"], end="\t")
             db.members.update_one(
                 {"id": member.id},
-                {"$set": { "exp": member_data["exp"] - member_data["guild_stat"][str(member.guild.id)]["exp"] }
+                {"$dec": {"exp": member_data["guild_stat"][str(member.guild.id)]["exp"]}
             })
 
     @commands.Cog.listener()
@@ -241,7 +228,7 @@ class Economic(commands.Cog, name="Экономика"):
             logger.debug(m["guild_stat"][str(guild.id)]["exp"], end="\t")
             db.members.update_one(
                 {"id": m['id']},
-                {"$set": { "exp": m["exp"] + m["guild_stat"][str(guild.id)]["exp"] }
+                {"$inc": {"exp": m["guild_stat"][str(guild.id)]["exp"]}
             })
             logger.debug(m["guild_stat"][str(guild.id)]["exp"])
 
@@ -251,7 +238,7 @@ class Economic(commands.Cog, name="Экономика"):
             logger.debug(m["guild_stat"][str(guild.id)]["exp"], end="\t")
             db.members.update_one(
                 {"id": m['id']},
-                {"$set": {"exp": m["exp"] - m["guild_stat"][str(guild.id)]["exp"]}
+                {"$dec": {"exp": m["guild_stat"][str(guild.id)]["exp"]}
             })
             logger.debug(m["guild_stat"][str(guild.id)]["exp"])
 
