@@ -6,7 +6,8 @@ from json import load, dump
 from os import listdir, getenv
 from os.path import isfile, join, getsize
 
-import XOR
+import utils.XOR
+import utils.FFC
 
 import discord
 from discord.utils import get
@@ -23,7 +24,6 @@ from discord.ext.commands import HybridCommand
 import re
 import os
 import ast
-import FFC
 import nekos
 import typing
 import asyncio

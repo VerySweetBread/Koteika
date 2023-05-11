@@ -13,3 +13,4 @@ light_colors = [
 ]
 
 def choise_light_color(): return choice(light_colors)
+
