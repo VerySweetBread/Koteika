@@ -121,18 +121,16 @@ class Economic(commands.Cog, name="Экономика"):
                                                   f"{prefix}.level": data['level'] + 1
                                               }
                                           })
-                    try:
-                        data = db.guild_settings.find_one({"id": message.guild.id})
-                        if data is not None and data['levelup'] == "send":
-                            await message.reply(
-                                embed=discord.Embed(
-                                    title="LEVEL UP", 
-                                    description=f"{message.author.mention} достиг {level+1} уровня!"
-                                ), 
-                                delete_after=10, 
-                                mention_author=False
-                            )
-                    except KeyError: pass
+                    data = db.guild_settings.find_one({"id": message.guild.id})
+                    if data is not None and data['levelup'] == "send":
+                        await message.reply(
+                            embed=discord.Embed(
+                                title="LEVEL UP", 
+                                description=f"{message.author.mention} достиг {level+1} уровня!"
+                            ), 
+                            delete_after=10, 
+                            mention_author=False
+                        )
 
             db.members.update_one({"id": message.author.id}, {"$set": {"last_mess_time": time()}})
 
