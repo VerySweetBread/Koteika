@@ -36,37 +36,7 @@ class Music(commands.Cog, name="Музыка"):
         self.bot = bot
         self.queue: Dict[int, Channel] = {}
 
-    def play_(self, inter, info):
-        try:
-            URL = info['url']
-        except:
-            URL = url
-            logger.debug(URL)
-
-        audio_source = discord.FFmpegPCMAudio(URL, **FFMPEG_OPTIONS)
-        inter.guild.voice_client.play(audio_source, after=lambda error: self.next_(inter, error))
-
-        asyncio.run_coroutine_threadsafe(self.send_embed_(inter, info), self.bot.loop)
-
-    async def send_embed_(self, inter, info):
-        embed = discord.Embed (
-            title=info["title"],
-            url=info['url'],
-            description=info["description"]
-        )
-        embed.set_author (
-            name=info["uploader"],
-            url=info["uploader_url"]
-        )
-        embed.set_thumbnail( url=info["thumbnail"] )
-        try:
-            await inter.response.send_message(embed=embed)
-        except:
-            await inter.channel.send(embed=embed)
-
-    async def end_of_queue_(self, inter):
-        await inter.channel.send("В очереди больше не осталось песен")
-
+    
     @app_commands.command(description="Plays music from popular platforms")
     @app_commands.describe(url="URL from Youtube/RuTube and other platforms")
     async def play(self, inter, url: str):
@@ -96,8 +66,9 @@ class Music(commands.Cog, name="Музыка"):
         else:
             inter.guild.voice_client.stop()
 
-        self.play_(inter, info)
-        
+        self.__play(inter, info)
+    
+
     @app_commands.command()
     async def stop(self, inter):
         queue = self.queue[inter.user.voice.channel.id]
@@ -105,24 +76,29 @@ class Music(commands.Cog, name="Музыка"):
         inter.guild.voice_client.stop()
         await inter.response.send_message("Остановлено")
 
+
     @app_commands.command()
     async def pause(self, inter):
         inter.guild.voice_client.pause()
         await inter.response.send_message("Поставлено на паузу")
+
 
     @app_commands.command()
     async def resume(self, inter):
         inter.guild.voice_client.resume()
         await inter.response.send_message("Снято с паузы")
 
+
     @app_commands.command()
     async def disconnect(self, inter):
         await inter.guild.voice_client.disconnect()
         await inter.response.send_message("Отключено")
 
+
     @app_commands.command()
     async def next(self, inter):
         inter.guild.voice_client.stop()
+
 
     @app_commands.command(name='queue')
     async def _queue(self, inter):
@@ -138,9 +114,43 @@ class Music(commands.Cog, name="Музыка"):
 
             text += '\n'
         await inter.response.send_message(f"```\n{text}\n```")
-        
+    
 
-    def next_(self, inter, error=None):
+    def __play(self, inter, info):
+        try:
+            URL = info['url']
+        except:
+            URL = url
+            logger.debug(URL)
+
+        audio_source = discord.FFmpegPCMAudio(URL, **FFMPEG_OPTIONS)
+        inter.guild.voice_client.play(audio_source, after=lambda error: self.__next(inter, error))
+
+        asyncio.run_coroutine_threadsafe(self.__send_embed(inter, info), self.bot.loop)
+
+
+    async def __send_embed(self, inter, info):
+        embed = discord.Embed (
+            title=info["title"],
+            url=info['url'],
+            description=info["description"]
+        )
+        embed.set_author (
+            name=info["uploader"],
+            url=info["uploader_url"]
+        )
+        embed.set_thumbnail( url=info["thumbnail"] )
+        try:
+            await inter.response.send_message(embed=embed)
+        except:
+            await inter.channel.send(embed=embed)
+
+
+    async def __end_of_queue(self, inter):
+        await inter.channel.send("В очереди больше не осталось песен")
+
+
+    def __next(self, inter, error=None):
         if error:
             logger.error(error)
             return
@@ -151,12 +161,12 @@ class Music(commands.Cog, name="Музыка"):
         queue.cur_pos += 1
         logger.debug((len(queue.queue), queue.cur_pos))
         if len(queue.queue) == queue.cur_pos:
-            asyncio.run_coroutine_threadsafe(self.end_of_queue_(inter), self.bot.loop)
+            asyncio.run_coroutine_threadsafe(self.__end_of_queue(inter), self.bot.loop)
             return
 
         #logger.debug([query["music_pos"]])
         info = queue.queue[queue.cur_pos].info
-        self.play_(inter, info)
+        self.__play(inter, info)
 
 
 async def setup(bot):
