@@ -7,6 +7,7 @@ from loguru import logger
 from json import dumps
 from discord import app_commands
 from discord.ext import commands
+from dataclasses import dataclass
 
 from bot import db
 
@@ -15,10 +16,25 @@ YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist':'True'}
 
 # TODO: locale
 
+@dataclass
+class Song:
+    register:   int
+    url:        str
+    info:       Dict[str, Any]
+
+@dataclass
+class Channel:
+    adder: discord.Member
+    cur_pos: int
+    queue: List[Song]
+    context: discord.Interaction
+    # skip_policy: Enum "everyone"
+
+
 class Music(commands.Cog, name="Музыка"):
     def __init__(self, bot):
         self.bot = bot
-        self.queue = {}
+        self.queue: Dict[int, Channel] = {}
 
     def play_(self, inter, info):
         try:
@@ -62,13 +78,7 @@ class Music(commands.Cog, name="Музыка"):
             return
         if inter.guild.voice_client is None:
             await channel.connect()
-            self.queue[channel.id] = {
-                "adder": inter.user.id,
-                "cur_pos": 0,
-                "queue": [],
-                "context": inter,
-                "skip_policy": "everyone"
-            }
+            self.queue[channel.id] = Channel(inter.user, 0, [], inter)
         elif inter.user.voice.channel != inter.guild.voice_client.channel:
             await inter.response.send_message(f"Занято каналом {inter.guild.voice_client.channel.mention}")
             return
@@ -78,7 +88,7 @@ class Music(commands.Cog, name="Музыка"):
         with youtube_dl.YoutubeDL(YDL_OPTIONS) as ydl:
             info = ydl.extract_info(url, download=False)
 
-        self.queue[channel.id]["queue"].append({'requester': inter.user.id, 'url': url, 'info': info})
+        self.queue[channel.id].queue.append(Song(url, inter.user, info))
 
         if client.is_playing() or client.is_paused():
             await inter.response.send_message("Добавлена новая песня в очередь")
@@ -91,7 +101,7 @@ class Music(commands.Cog, name="Музыка"):
     @app_commands.command()
     async def stop(self, inter):
         queue = self.queue[inter.user.voice.channel.id]
-        queue['cur_pos'] = len(queue['queue'])-1
+        queue.cur_pos = len(queue.queue)-1
         inter.guild.voice_client.stop()
         await inter.response.send_message("Остановлено")
 
@@ -119,12 +129,12 @@ class Music(commands.Cog, name="Музыка"):
         queue = self.queue[inter.user.voice.channel.id]
         text = ''
         for pos, item in enumerate(queue['queue']):
-            if queue['cur_pos'] == pos: text += '>>> '
+            if queue.cur_pos == pos: text += '>>> '
             else: text += '    '
 
             text += f"{pos+1}. "
-            text += item['info']['title']
-            text += '\n    - Запросил: ' + self.bot.get_user(item['requester']).name
+            text += item.info['title']
+            text += '\n    - Запросил: ' + item.requester.name
 
             text += '\n'
         await inter.response.send_message(f"```\n{text}\n```")
@@ -138,14 +148,14 @@ class Music(commands.Cog, name="Музыка"):
         inter.guild.voice_client.stop()
 
         queue = self.queue[inter.user.voice.channel.id]
-        queue["cur_pos"] += 1
-        logger.debug((len(queue["queue"]), queue["cur_pos"]))
-        if len(queue["queue"]) == queue["cur_pos"]:
+        queue.cur_pos += 1
+        logger.debug((len(queue.queue), queue.cur_pos))
+        if len(queue.queue) == queue.cur_pos:
             asyncio.run_coroutine_threadsafe(self.end_of_queue_(inter), self.bot.loop)
             return
 
         #logger.debug([query["music_pos"]])
-        info = queue["queue"][queue["cur_pos"]]['info']
+        info = queue.queue[queue.cur_pos].info
         self.play_(inter, info)
 
 
