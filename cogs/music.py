@@ -20,13 +20,13 @@ YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist':'True'}
 class Song:
     register:   int
     url:        str
-    info:       Dict[str, Any]
+    info:       dict[str, any]
 
 @dataclass
 class Channel:
     adder: discord.Member
     cur_pos: int
-    queue: List[Song]
+    queue: list[Song]
     context: discord.Interaction
     # skip_policy: Enum "everyone"
 
@@ -34,7 +34,7 @@ class Channel:
 class Music(commands.Cog, name="Музыка"):
     def __init__(self, bot):
         self.bot = bot
-        self.queue: Dict[int, Channel] = {}
+        self.queue: dict[int, Channel] = {}
 
     
     @app_commands.command(description="Plays music from popular platforms")
