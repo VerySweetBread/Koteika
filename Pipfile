@@ -18,6 +18,7 @@ matplotlib = "*"
 simpledemotivators = {file = "https://github.com/Infqq/simpledemotivators/archive/main.zip"}
 "discord.py" = {extras = ["voice"], version = "*"}
 pillow = {file = "https://github.com/python-pillow/Pillow/archive/refs/tags/9.5.0.zip"}
+pretty-errors = "*"
 
 [dev-packages]
 

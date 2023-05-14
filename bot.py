@@ -2,6 +2,8 @@
 
 import json
 import traceback
+import pretty_errors
+
 from json import load, dump
 from os import listdir, getenv
 from os.path import isfile, join, getsize
@@ -37,6 +39,7 @@ from cogs.translate import *
 from cogs.music     import *
 TOKEN = getenv('NATSUKO_TOKEN')
 my_id = 710089471835504672
+
 
 db = MongoClient('localhost', 27017).Koteika
 
