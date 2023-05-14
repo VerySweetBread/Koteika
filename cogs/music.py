@@ -54,19 +54,18 @@ class Music(commands.Cog, name="Музыка"):
             return
 
         client = inter.guild.voice_client
+        
+        await inter.response.defer(thinking=True)
 
         with youtube_dl.YoutubeDL(YDL_OPTIONS) as ydl:
             info = ydl.extract_info(url, download=False)
 
         self.queue[channel.id].queue.append(Song(url, inter.user, info))
 
-        if client.is_playing() or client.is_paused():
-            await inter.response.send_message("Добавлена новая песня в очередь")
-            return
-        else:
-            inter.guild.voice_client.stop()
+        await inter.edit_original_response(content="Добавлена новая песня в очередь")
 
-        self.__play(inter, info)
+        if not (client.is_playing() or client.is_paused()):
+            self.__play(inter, info)
     
 
     @app_commands.command()
@@ -126,6 +125,7 @@ class Music(commands.Cog, name="Музыка"):
         audio_source = discord.FFmpegPCMAudio(URL, **FFMPEG_OPTIONS)
         inter.guild.voice_client.play(audio_source, after=lambda error: self.__next(inter, error))
 
+        logger.debug(inter)
         asyncio.run_coroutine_threadsafe(self.__send_embed(inter, info), self.bot.loop)
 
 
@@ -140,10 +140,7 @@ class Music(commands.Cog, name="Музыка"):
             url=info["uploader_url"]
         )
         embed.set_thumbnail( url=info["thumbnail"] )
-        try:
-            await inter.response.send_message(embed=embed)
-        except:
-            await inter.channel.send(embed=embed)
+        await inter.channel.send(embed=embed)
 
 
     async def __end_of_queue(self, inter):
