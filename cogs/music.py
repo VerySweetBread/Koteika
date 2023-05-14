@@ -18,8 +18,8 @@ YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist':'True'}
 
 @dataclass
 class Song:
-    register:   int
     url:        str
+    requester:  discord.Member
     info:       dict[str, any]
 
 @dataclass
@@ -103,7 +103,7 @@ class Music(commands.Cog, name="Музыка"):
     async def _queue(self, inter):
         queue = self.queue[inter.user.voice.channel.id]
         text = ''
-        for pos, item in enumerate(queue['queue']):
+        for pos, item in enumerate(queue.queue):
             if queue.cur_pos == pos: text += '>>> '
             else: text += '    '
 
