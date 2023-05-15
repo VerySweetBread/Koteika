@@ -2,9 +2,9 @@ import discord
 from discord.ext import commands
 from discord.utils import get
 
-from cogs.checks import is_white
+from utils.checks import is_white
 import asyncio
-from cogs.emojis import check_mark
+from utils.emojis import check_mark
 
 from bot import db
 

@@ -33,9 +33,9 @@ import requests
 import subprocess
 import Levenshtein
 import DiscordUtils
-from cogs.emojis    import *
-from cogs.checks    import *
-from cogs.translate import *
+from utils.emojis    import *
+from utils.checks    import *
+from utils.translate import *
 from cogs.music     import *
 TOKEN = getenv('NATSUKO_TOKEN')
 my_id = 710089471835504672
@@ -127,30 +127,12 @@ async def prefixes(bot, message):
         commands.when_mentioned_or(prefs[str(message.guild.id)] if not check() else prefs["default"])(bot, message)
 
 intents=discord.Intents.all()
-intents.message_content = True
 bot = commands.Bot(command_prefix=prefixes, help_command=None, intents=intents)
-# bot = commands.Bot(command_prefix=prefixes, intents=discord.Intents.all())
 
-
-bot.code_lines = 0
-bot.code_size = 0
-#code_lines = 0  # num_lines = sum(1 for line in open('bot.py'))
-#code_size = 0  # getsize("bot.py")
-
-max_cog_name_len = max([len(cog) for cog in os.listdir('./cogs') if cog.endswith('.py')])
 
 bot.add_check(is_not_black)
-# bot.add_check(is_white)
 
 bot.owner_id = 459823895256498186
-
-my_roles = []
-privat_channels = []
-last_DM = bot.owner_id
-last_channel = bot.get_channel(745689950460051546)
-
-notification = {}
-players = {}
 
 
 @bot.event
@@ -164,21 +146,9 @@ async def on_ready():
 
     for cog in os.listdir('./cogs'):
         if cog.endswith('.py'):
-            try:
-                logger.info(f"Загрузка {cog.capitalize()}...")
-                await bot.load_extension(f'cogs.{cog.replace(".py", "")}')
+            logger.info(f"Загрузка {cog}...")
+            await bot.load_extension(f'cogs.{cog.replace(".py", "")}')
 
-                code_lines_ = num_lines = sum(1 for _ in open("cogs/"+cog))
-                code_size_ = getsize("cogs/"+cog)
-
-                bot.code_lines += code_lines_
-                bot.code_size += code_size_
-
-                logger.info(f">   {cog.capitalize()} загружен{' '*(max_cog_name_len-len(cog))}\tСтрок: {code_lines_}\tРазмер: {code_size_}")
-            except Exception as e:
-                logger.debug(repr(e))
-
-    logger.info(f"{bot.code_lines}\t{bot.code_size}")
     db.members.update_one({"id": 459823895256498186}, {"$set": {"access_level": "secret"}})
 
     if os.path.isfile('reboot'):
@@ -481,57 +451,4 @@ async def change_prefix(ctx, prefix):
         dump(prefs, f)
 
 
-@bot.command()
-async def wait(ctx, *, params):
-    events = ['typing', 'message', 'member_update']
-
-    params = json.loads(params)
-    event = params.pop('event')
-
-    if event in events:
-        def check(element):
-            out = True
-
-            for param in params.keys():
-                if '.' in param:
-                    param_ = param.split('.')
-                else:
-                    param_ = [param]
-                for i in param_:
-                    if i in dir(element):
-                        element = getattr(element, i)
-                    else:
-                        out = False
-                if element != params[param]: out = False
-
-            return out
-
-        await bot.wait_for(event, check=check)
-        await ctx.send(ctx.message.author.mention)
-    if event == "member_update":
-        def check(before, element):
-            out = True
-
-            for param in params.keys():
-                if '.' in param:
-                    param_ = param.split('.')
-                else:
-                    param_ = [param]
-                for i in param_:
-                    if i in dir(element):
-                        element = getattr(element, i)
-                    else:
-                        out = False
-                if element != params[param]: out = False
-
-            return out
-
-        await bot.wait_for(event, check=check)
-        await ctx.send(ctx.message.author.mention)
-
-
-@logger.catch
-def main():
-    bot.run(TOKEN)
-
-main()
+bot.run(TOKEN)

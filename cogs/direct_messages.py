@@ -6,7 +6,7 @@ from typing import Optional
 
 from discord.utils import get
 
-from cogs.emojis import check_mark, XX
+from utils.emojis import check_mark, XX
 
 
 class DM(commands.Cog, name="ЛС"):

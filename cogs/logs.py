@@ -4,7 +4,7 @@ import discord
 from discord.ext import commands
 from datetime import timedelta
 
-from cogs.translate import *
+from utils.translate import *
 from bot import db
 
 
@@ -152,4 +152,4 @@ class Logs(commands.Cog, name="Логи"):
 
 
 async def setup(bot):
-    await bot.add_cog(Logs(bot))
+    ...  # await bot.add_cog(Logs(bot))

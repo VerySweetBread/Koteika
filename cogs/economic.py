@@ -15,7 +15,7 @@ from discord.app_commands   import TranslationContextLocation as trans_loc
 from datetime   import datetime
 from matplotlib import ticker
 from matplotlib import pyplot as plt
-from cogs.emojis    import chocolate
+from utils.emojis    import chocolate
 
 class Economic(commands.Cog, name="Экономика"):
     def __init__(self, bot):
