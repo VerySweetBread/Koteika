@@ -8,9 +8,6 @@ from json import load, dump
 from os import listdir, getenv
 from os.path import isfile, join, getsize
 
-import utils.XOR
-import utils.FFC
-
 import discord
 from discord.utils import get
 from discord.ext import commands, tasks
@@ -35,7 +32,6 @@ import Levenshtein
 import DiscordUtils
 from utils.emojis    import *
 from utils.checks    import *
-from utils.translate import *
 from cogs.music     import *
 TOKEN = getenv('NATSUKO_TOKEN')
 my_id = 710089471835504672
@@ -206,88 +202,6 @@ async def clear(ctx, count: int):
         count -= 100
     await ctx.channel.purge(limit=count)
 
-
-@bot.group(brief="$commands_HTiP_brief")
-async def HTiP(ctx):
-    region = ctx.message.author.id
-    region = db.members.find_one({"id": region})["language"]
-
-    if ctx.invoked_subcommand is None:
-        await ctx.send(translate('$commands_HTiP_subcommand', region))
-
-    abc = str(ctx.message.attachments[0].filename)[-3:]
-    if not ctx.message.attachments and abc != 'jpg' and abc != 'png':
-        await ctx.send(translate('$commands_HTiP_picNotExists', region))
-
-    else:
-        url = ctx.message.attachments[0].url
-        filename = ctx.message.attachments[0].filename
-        img = requests.get(url)
-        img_file = open(filename, 'wb')
-        img_file.write(img.content)
-        img_file.close()
-
-
-@HTiP.command(brief="$commands_HTiP_w_brief")
-async def w(ctx, *, text: str):
-    region = ctx.message.author.id
-    region = db.members.find_one({"id": region})["language"]
-
-    if text is None:
-        await ctx.send(translate('$commands_HTiP_w_textNotExists', region))
-        return None
-
-    if text.split(' ')[-1].startswith('key='):
-        key = text.split(' ')[-1][4:]
-        text = ' '.join(text.split(' ')[:-1])
-    else:
-        key = None
-
-    if key is not None:
-        text = XOR.char_encode(text, key)
-
-    abc = str(ctx.message.attachments[0].filename)[-3:]
-    if not ctx.message.attachments and abc != 'jpg' and abc != 'png':
-        await ctx.send(translate('$commands_HTiP_picNotExists', region))
-
-    else:
-        url = ctx.message.attachments[0].url
-        filename = ctx.message.attachments[0].filename
-        img = requests.get(url)
-        img_file = open(filename, 'wb')
-        img_file.write(img.content)
-        img_file.close()
-
-    FFC.write(filename, 'secret.' + abc, text)
-    with open('secret.' + abc, 'rb') as f:
-        file = discord.File(f)
-        await ctx.send(file=file)
-
-
-@HTiP.command(brief="$commands_HTiP_r_brief")
-async def r(ctx, key: str = None):
-    region = ctx.message.author.id
-    region = db.members.find_one({"id": region})["language"]
-
-    try:
-        abc = str(ctx.message.attachments[0].filename)[-3:]
-        if not ctx.message.attachments and abc != 'jpg' and abc != 'png':
-            await ctx.send(translate('$commands_HTiP_picNotExists', region))
-    except IndexError:
-        await ctx.send(translate('$commands_HTiP_picNotExists', region))
-
-    else:
-        url = ctx.message.attachments[0].url
-        filename = ctx.message.attachments[0].filename
-        img = requests.get(url)
-        img_file = open('C:\\Users\\gleb\\PycharmProjects\\systemnik\\' + filename, 'wb')
-        img_file.write(img.content)
-        img_file.close()
-
-        secret_text = FFC.read(filename)
-        if key is not None:
-            secret_text = XOR.char_encode(secret_text, key)
-        await ctx.send(secret_text)
 
 
 @bot.command(name='eval')
