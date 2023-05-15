@@ -451,4 +451,12 @@ async def change_prefix(ctx, prefix):
         dump(prefs, f)
 
 
+async def check(itr: discord.Interaction):
+    if not itr.channel.permissions_for(itr.guild.me).send_messages:
+        await itr.response.send_message("Commands are not allowed here", ephemeral=True)
+        return False
+    return True
+
+bot.tree.interaction_check = check
+
 bot.run(TOKEN)
