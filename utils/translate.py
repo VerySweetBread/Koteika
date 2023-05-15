@@ -1,5 +1,6 @@
 from bot import db
-
+from discord.app_commands   import TranslationContextLocation as trans_loc
+from discord import app_commands
 
 def region_to_str(region):
     # if region == discord.VoiceRegion.russia:
@@ -28,3 +29,16 @@ def translate(string, region):
             return pack
         else:
             return string
+
+async def get_text(inter, location, string):
+    data = await inter.translate(
+        app_commands.locale_str(string),
+        locale=inter.locale,
+        data=app_commands.TranslationContext(
+            trans_loc.other,
+            location
+        )
+    )
+
+    return data or string
+

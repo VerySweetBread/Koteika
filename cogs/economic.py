@@ -1,3 +1,5 @@
+from utils.translate import get_text
+
 from time import time
 
 import typing
@@ -11,7 +13,6 @@ from random import randint as rint
 from discord                import app_commands
 from discord.ext            import commands, tasks
 from discord.app_commands   import Choice
-from discord.app_commands   import TranslationContextLocation as trans_loc
 from datetime   import datetime
 from matplotlib import ticker
 from matplotlib import pyplot as plt
@@ -242,25 +243,12 @@ class Economic(commands.Cog, name="Экономика"):
             })
             logger.debug(m["guild_stat"][str(guild.id)]["exp"])
 
-    async def get_text(self, inter, location, string):
-        data = await self.bot.tree.translator.translate(
-            app_commands.locale_str(string),
-            inter.locale,
-            app_commands.TranslationContext(
-                trans_loc.other,
-                location
-            )
-        )
-
-        if data is None: return string
-        return data
-
     @app_commands.command(description="View balance and level")
     async def rank(self, inter: discord.Interaction, user: discord.Member = None):
         if user is None: user = inter.user
 
         if self.bot.get_user(user.id).bot:
-            await inter.response.send_message(await self.get_text(inter, "rank", "Bot hasn't experience"))
+            await inter.response.send_message(await get_text(inter, "rank", "Bot hasn't experience"))
             return
 
         user_data = db.members.find_one({"id": user.id})
@@ -312,27 +300,27 @@ class Economic(commands.Cog, name="Экономика"):
         else: last_day = "???"
 
 
-        description = f"{await self.get_text(inter, 'rank', 'Money')}: {user_data['money']}{chocolate}\n\n" \
-                      f"__{await self.get_text(inter, 'rank', 'Global stats')}:__\n" \
-                      f"{await self.get_text(inter, 'rank', 'Level')}: {user_data['level']}\n" \
-                      f"{await self.get_text(inter, 'rank', 'Exp')}: {user_data['exp']} / {user_data['level'] ** 2 * 50 + 5}" \
+        description = f"{await get_text(inter, 'rank', 'Money')}: {user_data['money']}{chocolate}\n\n" \
+                      f"__{await get_text(inter, 'rank', 'Global stats')}:__\n" \
+                      f"{await get_text(inter, 'rank', 'Level')}: {user_data['level']}\n" \
+                      f"{await get_text(inter, 'rank', 'Exp')}: {user_data['exp']} / {user_data['level'] ** 2 * 50 + 5}" \
                       f" ({(user_data['level'] ** 2 * 50 + 5) - user_data['exp']})\n" \
-                      f"{await self.get_text(inter, 'rank', 'Per hour')}: {per_hour}, {await self.get_text(inter, 'rank', 'per the past hour')}: {last_hour}\n" \
-                      f"{await self.get_text(inter, 'rank', 'Per day')}: {per_day}, {await self.get_text(inter, 'rank', 'per the past day')}: {last_day}\n"
+                      f"{await get_text(inter, 'rank', 'Per hour')}: {per_hour}, {await get_text(inter, 'rank', 'per the past hour')}: {last_hour}\n" \
+                      f"{await get_text(inter, 'rank', 'Per day')}: {per_day}, {await get_text(inter, 'rank', 'per the past day')}: {last_day}\n"
           
         secs = user_data['guild_stat'][str(inter.guild.id)]['secs_in_voice']
 
         if "guild_stat" in list(user_data.keys()):
             if inter.guild is not None and str(inter.guild.id) in list(user_data['guild_stat'].keys()):
-                description += f"\n__{await self.get_text(inter, 'rank', 'On this guild')}:__\n" \
-                               f"{await self.get_text(inter, 'rank', 'Level')}: {user_data['guild_stat'][str(inter.guild.id)]['level']}\n" \
-                               f"{await self.get_text(inter, 'rank', 'Exp')}: {user_data['guild_stat'][str(inter.guild.id)]['exp']} / " \
+                description += f"\n__{await get_text(inter, 'rank', 'On this guild')}:__\n" \
+                               f"{await get_text(inter, 'rank', 'Level')}: {user_data['guild_stat'][str(inter.guild.id)]['level']}\n" \
+                               f"{await get_text(inter, 'rank', 'Exp')}: {user_data['guild_stat'][str(inter.guild.id)]['exp']} / " \
                                f"{user_data['guild_stat'][str(inter.guild.id)]['level'] ** 2 * 50 + 5}" \
                                f" ({(user_data['guild_stat'][str(inter.guild.id)]['level'] ** 2 * 50 + 5) - user_data['guild_stat'][str(inter.guild.id)]['exp']})\n" \
-                               f"{await self.get_text(inter, 'rank', 'Time in voice channels')}: {self.time_translation(secs)}"
+                               f"{await get_text(inter, 'rank', 'Time in voice channels')}: {self.time_translation(secs)}"
 
 
-        e = discord.Embed(title=f"{await self.get_text(inter, 'rank', 'Info about')} {self.bot.get_user(user.id).name}",
+        e = discord.Embed(title=f"{await get_text(inter, 'rank', 'Info about')} {self.bot.get_user(user.id).name}",
                           description=description,
                           color=color)
         await inter.response.send_message(embed=e)
