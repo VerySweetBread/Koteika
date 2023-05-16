@@ -32,12 +32,9 @@ def translate(string, region):
 
 async def get_text(inter, location, string):
     data = await inter.translate(
-        app_commands.locale_str(string),
+        string=app_commands.locale_str(string),
         locale=inter.locale,
-        data=app_commands.TranslationContext(
-            trans_loc.other,
-            location
-        )
+        data=location
     )
 
     return data or string
