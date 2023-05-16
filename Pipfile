@@ -4,7 +4,6 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-pymongo = "*"
 loguru = "*"
 "nekos.py" = "*"
 levenshtein = "*"
@@ -19,6 +18,7 @@ simpledemotivators = {file = "https://github.com/Infqq/simpledemotivators/archiv
 "discord.py" = {extras = ["voice"], version = "*"}
 pillow = {file = "https://github.com/python-pillow/Pillow/archive/refs/tags/9.5.0.zip"}
 pretty-errors = "*"
+motor = "*"
 
 [dev-packages]
 

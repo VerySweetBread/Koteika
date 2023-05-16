@@ -52,8 +52,8 @@ class Economic(commands.Cog, name="Экономика"):
     @commands.Cog.listener()
     async def on_message(self, message):
         if not message.author.bot and message.guild is not None and not message.content.startswith(tuple(await self.bot.command_prefix(self.bot, message))):
-            data = db.members.find_one({"id": message.author.id})
-            flood_channels = db.guild_settings.find_one({"id": message.guild.id})
+            data = await db.members.find_one({"id": message.author.id})
+            flood_channels = await db.guild_settings.find_one({"id": message.guild.id})
             if flood_channels is None:
                 flood_channels = []
             else:
@@ -62,7 +62,7 @@ class Economic(commands.Cog, name="Экономика"):
             if time() - 3 >= data["last_mess_time"] and message.channel.id not in flood_channels:
                 delta_exp = len(message.content) + len(message.attachments)*100
 
-                db.history.update_one(
+                await db.history.update_one(
                     {'type': 'server', 'id': message.guild.id},
                     {'$inc': {f'current.{datetime.now().hour}': delta_exp}}
                 )
@@ -72,23 +72,23 @@ class Economic(commands.Cog, name="Экономика"):
                 delta_money = rint(1, 5)
 
                 # Глобальные опыт/уроень
-                db.members.update_one({"id": message.author.id},
+                await db.members.update_one({"id": message.author.id},
                                       {"$inc": {"exp": delta_exp}})  # Изменяем exp
-                data = db.members.find_one({"id": message.author.id})
+                data = await db.members.find_one({"id": message.author.id})
                 if data is not None:
                     level = data["level"]
                     if level ** 2 * 50 + 5 <= data["exp"]:
-                        db.members.update_one({"id": message.author.id},
+                        await db.members.update_one({"id": message.author.id},
                                               {"$inc": {"level": 1}})  # Изменяем level
                         if data["level"]+1 >= data["max_level"]:
-                            db.members.update_one({"id": message.author.id},
+                            await db.members.update_one({"id": message.author.id},
                                                   {"$inc": {"money": (level + 1) * delta_money}})  # Изменяем money
 
 
                 # Локальные опыт/уровень
                 prefix = f"guild_stat.{message.guild.id}"
-                if str(message.guild.id) not in db.members.find_one({"id": message.author.id})["guild_stat"].keys():
-                    db.members.update_many({"id": message.author.id},
+                if (await db.members.find_one({"id": message.author.id, f'guild_stat.{message.guild.id}': {'$exists': 0}})):
+                    await db.members.update_many({"id": message.author.id},
                                            {"$set": {
                                                f"{prefix}.exp": 0,
                                                f"{prefix}.level": 0,
@@ -101,15 +101,15 @@ class Economic(commands.Cog, name="Экономика"):
                                                 }
                                             }})  # Создаем в guild_stat поле для сервера
 
-                data = db.members.find_one({"id": message.author.id})["guild_stat"][str(message.guild.id)]
-                db.members.update_one({"id": message.author.id},
+                data = (await db.members.find_one({"id": message.author.id}))["guild_stat"][str(message.guild.id)]
+                await db.members.update_one({"id": message.author.id},
                                       {"$inc": {f"{prefix}.exp": delta_exp}})
-                data = db.members.find_one({"id": message.author.id})["guild_stat"][str(message.guild.id)]
+                data = (await db.members.find_one({"id": message.author.id}))["guild_stat"][str(message.guild.id)]
                 level = data["level"]
                 if level ** 2 * 50 + 5 <= data["exp"]:
-                    db.members.update_one({"id": message.author.id},
+                    await db.members.update_one({"id": message.author.id},
                                           {"$inc": {f"{prefix}.level": 1}})
-                    data = db.guild_settings.find_one({"id": message.guild.id})
+                    data = await db.guild_settings.find_one({"id": message.guild.id})
                     if data is not None and data['levelup'] == "send":
                         await message.reply(
                             embed=discord.Embed(
@@ -120,7 +120,7 @@ class Economic(commands.Cog, name="Экономика"):
                             mention_author=False
                         )
 
-            db.members.update_one({"id": message.author.id}, {"$set": {"last_mess_time": time()}})
+            await db.members.update_one({"id": message.author.id}, {"$set": {"last_mess_time": time()}})
 
 
     @commands.Cog.listener()
@@ -142,9 +142,9 @@ class Economic(commands.Cog, name="Экономика"):
             else:
                 humans = list(filter(lambda x: not x.bot, before.channel.members))
                 if len(humans) == 1:
-                    self.voice_register(humans[0], before)
+                    await self.voice_register(humans[0], before)
                 if len(humans) != 0:
-                    self.voice_register(member, before)
+                    await self.voice_register(member, before)
 
             # При выходе
             if after.channel is None:
@@ -152,7 +152,7 @@ class Economic(commands.Cog, name="Экономика"):
                 except: pass
 
 
-    def voice_register(self, member, voice_state):
+    async def voice_register(self, member, voice_state):
         if member.id in self.bot.voice_counter.keys(): 
             secs = (datetime.now() - self.bot.voice_counter[member.id]).seconds
         else: 
@@ -171,7 +171,7 @@ class Economic(commands.Cog, name="Экономика"):
             k *= 2
         exp = int(secs // 5 * k)
         money = exp * rint(1, 5)
-        db.members.update_one({"id": member.id}, {
+        await db.members.update_one({"id": member.id}, {
             "$inc": {
                 f"guild_stat.{member.guild.id}.secs_in_voice": secs,
                 f"guild_stat.{member.guild.id}.exp": exp,
@@ -179,7 +179,7 @@ class Economic(commands.Cog, name="Экономика"):
                 "money": money
             }})
 
-        db.history.update_one(
+        await db.history.update_one(
             {'type': 'server', 'id': member.guild.id},
             {"$inc": {f'current.{datetime.now().hour}': exp}}
         )
@@ -196,7 +196,7 @@ class Economic(commands.Cog, name="Экономика"):
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        member_data = db.members.find_one({"id": member.id})
+        member_data = await db.members.find_one({"id": member.id})
 
         if member_data is None:
             logger.warning("Пользователь не найден")
@@ -204,30 +204,30 @@ class Economic(commands.Cog, name="Экономика"):
         
         if str(member.guild.id) in member_data["guild_stat"].keys():
             logger.debug(member_data["guild_stat"][str(member.guild.id)]["exp"], end="\t")
-            db.members.update_one(
+            await db.members.update_one(
                 {"id": member.id},
                 {"$inc": {"exp": member_data["guild_stat"][str(member.guild.id)]["exp"]}}
             )
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
-        member_data = db.members.find_one({"id": member.id})
+        member_data = await db.members.find_one({"id": member.id})
 
         if member_data is None:
             logger.warning("Пользователь не найден")
             return
         if str(member.guild.id) in member_data["guild_stat"].keys():
             logger.debug(member_data["guild_stat"][str(member.guild.id)]["exp"], end="\t")
-            db.members.update_one(
+            await db.members.update_one(
                 {"id": member.id},
                 {"$dec": {"exp": member_data["guild_stat"][str(member.guild.id)]["exp"]}
             })
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
-        for m in db.members.find({f"guild_stat.{guild.id}": {"$exists": True}}):
+        async for m in db.members.find({f"guild_stat.{guild.id}": {"$exists": True}}):
             logger.debug(m["guild_stat"][str(guild.id)]["exp"], end="\t")
-            db.members.update_one(
+            await db.members.update_one(
                 {"id": m['id']},
                 {"$inc": {"exp": m["guild_stat"][str(guild.id)]["exp"]}
             })
@@ -235,9 +235,9 @@ class Economic(commands.Cog, name="Экономика"):
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):
-        for m in db.members.find({f"guild_stat.{guild.id}": {"$exists": True}}):
+        async for m in db.members.find({f"guild_stat.{guild.id}": {"$exists": True}}):
             logger.debug(m["guild_stat"][str(guild.id)]["exp"], end="\t")
-            db.members.update_one(
+            await db.members.update_one(
                 {"id": m['id']},
                 {"$dec": {"exp": m["guild_stat"][str(guild.id)]["exp"]}
             })
@@ -251,7 +251,7 @@ class Economic(commands.Cog, name="Экономика"):
             await inter.response.send_message(await get_text(inter, "rank", "Bot hasn't experience"))
             return
 
-        user_data = db.members.find_one({"id": user.id})
+        user_data = await db.members.find_one({"id": user.id})
         if user_data is None or str(inter.guild.id) not in user_data['guild_stat'].keys():
             await inter.response.send_message("Об этом пользователе информации пока нет")
             return
@@ -259,7 +259,7 @@ class Economic(commands.Cog, name="Экономика"):
         if str(user.id) in self.bot.voice_counter.keys():
             prefix = f"guild_stat.{inter.guild.id}"
             if str(inter.guild.id) not in user_data["guild_stat"].keys():
-                db.members.update_many(
+                await db.members.update_many(
                     {"id": user.id},
                     {"$set": {
                         f"{prefix}.exp": 0,
@@ -272,9 +272,9 @@ class Economic(commands.Cog, name="Экономика"):
                     }}
                 )  # Создаем в guild_stat поле для сервера
 
-            self.voice_register(user, user.voice)
+            await self.voice_register(user, user.voice)
 
-            user_data = db.members.find_one({"id": user.id})
+            user_data = await db.members.find_one({"id": user.id})
             if user_data is None: return
 
         if inter.guild is not None:
@@ -353,7 +353,7 @@ class Economic(commands.Cog, name="Экономика"):
             color = discord.Color(0xaaffaa)
 
         e = discord.Embed(title="Топ", description=category, color=color)
-        data_ = list(db.members.find({f"guild_stat.{inter.guild.id}": {"$exists": True}}).sort(categories[category], -1))[:10]
+        data_ = await db.members.find({f"guild_stat.{inter.guild.id}": {"$exists": True}}).sort(categories[category], -1).to_list(10)
 
         if not data_:
             await inter.response.send_message(await get_text(inter, "top", "Not enough data. Try later"))
@@ -374,7 +374,7 @@ class Economic(commands.Cog, name="Экономика"):
         for place in range(l):
             m = data_[place]
             if 'level' not in m['guild_stat'][str(inter.guild.id)].keys():
-                db.members.update_one(
+                await db.members.update_one(
                     {'id': m['id']},
                     {'$set': {f'guild_stat.{inter.guild.id}.level': 0}}
                 )
@@ -426,10 +426,10 @@ class Economic(commands.Cog, name="Экономика"):
 
 
         db_ = db.members
-        info1 = db_.find_one({"id": user1})['guild_stat'][str(inter.guild.id)]['history']['hour']
-        info2 = db_.find_one({"id": user2})['guild_stat'][str(inter.guild.id)]['history']['hour']
-        info1[str(int(ts))] = db_.find_one({"id": user1})['guild_stat'][str(inter.guild.id)]['exp']
-        info2[str(int(ts))] = db_.find_one({"id": user2})['guild_stat'][str(inter.guild.id)]['exp']
+        info1 = await db_.find_one({"id": user1})['guild_stat'][str(inter.guild.id)]['history']['hour']
+        info2 = await db_.find_one({"id": user2})['guild_stat'][str(inter.guild.id)]['history']['hour']
+        info1[str(int(ts))] = await db_.find_one({"id": user1})['guild_stat'][str(inter.guild.id)]['exp']
+        info2[str(int(ts))] = await db_.find_one({"id": user2})['guild_stat'][str(inter.guild.id)]['exp']
         
 
         if period == -1:
@@ -491,7 +491,7 @@ class Economic(commands.Cog, name="Экономика"):
         ts = datetime.now().timestamp()
 
         db_mem = db.members
-        data = list(db_mem.find({f"guild_stat.{inter.guild.id}": {"$exists": True}}).sort(f"guild_stat.{inter.guild.id}.exp", -1))[:10]
+        data = await db_mem.find({f"guild_stat.{inter.guild.id}": {"$exists": True}}).sort(f"guild_stat.{inter.guild.id}.exp", -1).to_list(10)
 
         if not data:
             await inter.response.send_message("Недостаточно данных. Попробуйте завтра")

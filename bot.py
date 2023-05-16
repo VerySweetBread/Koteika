@@ -16,7 +16,7 @@ from discord import app_commands
 from random import randint, shuffle, choice, seed
 from time import time
 from inspect import _empty
-from pymongo import MongoClient
+import motor.motor_asyncio
 from loguru import logger
 from discord.ext.commands import HybridCommand
 
@@ -37,7 +37,7 @@ TOKEN = getenv('NATSUKO_TOKEN')
 my_id = 710089471835504672
 
 
-db = MongoClient('localhost', 27017).Koteika
+db = motor.motor_asyncio.AsyncIOMotorClient('localhost', 27017).Koteika
 
 if os.path.exists('prefixes.json'):
     with open('prefixes.json', 'r') as f:
@@ -86,11 +86,10 @@ def insert_returns(body):
 
 def region_to_str(_): return "RU"       # TODO: Заменить на нормальный код -_-
 
-def add_user_to_DB(member):
+async def add_user_to_DB(member):
     # if member is not discord.Member: return
-    ids = [i["id"] for i in db.members.find()]
-    if member.id not in ids:
-        db.members.insert_one({"id": member.id,
+    if not await db.members.find_one({"id": member.id}):
+        await db.members.insert_one({"id": member.id,
                                "name": member.name,
                                "access_level": "gray",
                                "language": region_to_str("Meow"),   # TODO: Ну, очевидно
@@ -145,7 +144,7 @@ async def on_ready():
             logger.info(f"Загрузка {cog}...")
             await bot.load_extension(f'cogs.{cog.replace(".py", "")}')
 
-    db.members.update_one({"id": 459823895256498186}, {"$set": {"access_level": "secret"}})
+    await db.members.update_one({"id": 459823895256498186}, {"$set": {"access_level": "secret"}})
 
     if os.path.isfile('reboot'):
         with open('reboot', 'r') as f:
@@ -181,7 +180,7 @@ async def on_message_handler(message):
 
     # Обработка команд (пре-подготовка)
     if user.name != 'Котейка':
-        add_user_to_DB(user)
+        await add_user_to_DB(user)
 
 
 @bot.event
@@ -250,7 +249,7 @@ async def change_level(ctx, user: typing.Union[discord.Member, int], level):
     if not level in ('secret', 'white', 'gray', 'black'):
         await ctx.message.add_reaction(XX)
         raise TypeError
-    db.members.update_one({"id": id_}, {"$set": {"access_level": level}})
+    await db.members.update_one({"id": id_}, {"$set": {"access_level": level}})
     await ctx.message.add_reaction(check_mark)
 
     await asyncio.sleep(3)

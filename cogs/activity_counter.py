@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 from matplotlib import pyplot as plt
 from matplotlib import ticker, markers
 from loguru import logger
+from asyncio import run_coroutine_threadsafe
 
 
 class ActiveCount(commands.Cog):
@@ -18,11 +19,11 @@ class ActiveCount(commands.Cog):
         self.daysoftheweek = ("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
 
         for server in bot.guilds:
-            self.add_server(server.id)
+            run_coroutine_threadsafe(self.add_server(server.id), self.bot.loop)
 
-    def add_server(self, server_id: int):
-        if not db.history.find_one({"type": "server", "id": server_id}):
-            db.history.insert_one({
+    async def add_server(self, server_id: int):
+        if not (await db.history.find_one({"type": "server", "id": server_id})):
+            await db.history.insert_one({
                 "type": "server",
                 "id": server_id,
                 "history": {
@@ -66,7 +67,7 @@ class ActiveCount(commands.Cog):
         day = datetime.now().weekday()
         fig, ax = plt.subplots(figsize=(8, 5))
 
-        server_data = db.history.find_one({"type": "server", "id": inter.guild_id})
+        server_data = await db.history.find_one({"type": "server", "id": inter.guild_id})
 
         if server_data is None:
             await inter.response.send_message("Недостаточно данных! Попробуйте завтра")

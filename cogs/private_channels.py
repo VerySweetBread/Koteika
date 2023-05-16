@@ -17,22 +17,22 @@ class privateChannels(commands.Cog, name="Приватные комнаты"):
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
-        for chan in [i["id"] for i in db.private_channels.find()]:
-            if not self.bot.get_channel(chan):
-                db.private_channels.delete_one({"id": chan})
-
-        v_channels = [i["id"] for i in db.private_channels.find()]
-        v_categories = [self.bot.get_channel(i).category_id for i in v_channels]
+        if (
+            before.channel and
+            (await db.private_channels.find_one({'id': before.channel.id})) and
+            not self.bot.get_channel(before.channel.id)
+        ):
+            await db.private_channels.delete_one({'id': before.channel.id})
 
         if (
-                before.channel is not None and
-                len(before.channel.members) == 0 and
-                before.channel.id not in v_channels and
-                before.channel.category_id in v_categories
+            before.channel and
+            len(before.channel.members) == 0 and
+            not (await db.private_channels.find_one({'id': before.channel.id})) and
+            (await db.private_channels.find_one({'category_id': before.channel.category_id}))
         ):
             await before.channel.delete()
 
-        if after.channel is not None and after.channel.id in v_channels:
+        if after.channel and (await db.private_channels.find_one({"id": after.channel.id})):
             #, overwrites={
             #    member: discord.PermissionOverwrite(manage_channels=True,
             #                                        move_members=True,
@@ -66,11 +66,11 @@ class privateChannels(commands.Cog, name="Приватные комнаты"):
                            "находитесь в главный")
     @commands.check(is_white)
     async def set_private(self, ctx):
-        if ctx.author.voice.channel.id in [i["id"] for i in db.private_channels.find()]:
+        if (await db.private_channels.find({'id': ctx.author.voice.channel.id})):
             await ctx.message.delete()
             message = await ctx.send('Канал уже добавлен')
         else:
-            db.private_channels.insert_one({"id": ctx.author.voice.channel.id})
+            await db.private_channels.insert_one({"id": ctx.author.voice.channel.id, 'category_id': ctx.author.voice.category.id})
             await ctx.message.add_reaction(check_mark)
             message = ctx.message
 
@@ -91,8 +91,8 @@ class privateChannels(commands.Cog, name="Приватные комнаты"):
             message = await ctx.send("Зайдите в ГК")
             await self.bot.wait_for("voice_state_update", check=lambda member, _, after: \
                 member == ctx.message.author and after.channel is not None)
-        if ctx.author.voice.channel.id in [i["id"] for i in db.private_channels.find()]:
-            db.private_channels.delete_one({"id": ctx.author.voice.channel.id})
+        if (await db.private_channels.find_one({'id': ctx.author.voice.channel.id})):
+            await db.private_channels.delete_one({"id": ctx.author.voice.channel.id})
             await ctx.message.add_reaction(check_mark)
         else:
             await message.edit(content='Этот канал не является приватным')
