@@ -355,8 +355,8 @@ class Economic(commands.Cog, name="Экономика"):
         e = discord.Embed(title="Топ", description=category, color=color)
         data_ = list(db.members.find({f"guild_stat.{inter.guild.id}": {"$exists": True}}).sort(categories[category], -1))[:10]
 
-        if len(data_) == 0:
-            await inter.response.send_message("Недостаточно данных! Попробуйте завтра")
+        if not data_:
+            await inter.response.send_message(await get_text(inter, "top", "Not enough data. Try later"))
             return
 
         l = min(len(data_), 10)
@@ -369,6 +369,7 @@ class Economic(commands.Cog, name="Экономика"):
             max_val = data_[0]['guild_stat'][str(inter.guild.id)]['secs_in_voice']
         elif category == "Баланс":
             max_val = data_[0]['money']
+        max_val = max(max_val, 1)
 
         for place in range(l):
             m = data_[place]

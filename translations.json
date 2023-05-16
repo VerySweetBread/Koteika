@@ -109,6 +109,8 @@
         "About this bot": "À propos de ce robot",
         "info": "Мяв! Я ~~очередной~~ дискорд бот, ~~который в очередной раз попытается захватить мир~~.\nСоздатель: Сладкий Хлеб#1199\nНаписан на: Discord.py\nХост: </host:981229566804774944>",
 
+        "top.Not enough data. Try later": "Pas assez de données. Essayer plus tard",
+
         "activity.Avarage": "Moyen",
         "activity.Max": "Maximum",
         "activity.On this day\nof the week": "En ce jour de\nla semaine",
