@@ -26,19 +26,13 @@ class privateChannels(commands.Cog, name="Приватные комнаты"):
 
         if (
             before.channel and
-            len(before.channel.members) == 0 and
+            not before.channel.members and
             not (await db.private_channels.find_one({'id': before.channel.id})) and
             (await db.private_channels.find_one({'category_id': before.channel.category_id}))
         ):
             await before.channel.delete()
 
         if after.channel and (await db.private_channels.find_one({"id": after.channel.id})):
-            #, overwrites={
-            #    member: discord.PermissionOverwrite(manage_channels=True,
-            #                                        move_members=True,
-            #                                        manage_permissions=True)
-            #}
-
             new_private = await after.channel.category.create_voice_channel(name=member.display_name)
 
             try:
@@ -51,14 +45,10 @@ class privateChannels(commands.Cog, name="Приватные комнаты"):
             except:
                 pass
 
-        try:
-            voice = before.channel.guild.me.voice
-        except:
-            voice = after.channel.guild.me.voice
+        voice = (before or after).channel.guild.me.voice
 
-        if voice:
-            if len(voice.channel.members) == 1:
-                await member.guild.voice_client.disconnect()
+        if voice and tuple(voice.channel.members) == (voice.guild.me,):
+            await member.guild.voice_client.disconnect()
 
     @commands.command(brief="Присваивает комнату главной",
                       help="Идея приватных комнат состоит в том, что при входе в ГК создается пприватная комната. "
@@ -66,11 +56,11 @@ class privateChannels(commands.Cog, name="Приватные комнаты"):
                            "находитесь в главный")
     @commands.check(is_white)
     async def set_private(self, ctx):
-        if (await db.private_channels.find({'id': ctx.author.voice.channel.id})):
+        if (await db.private_channels.find_one({'id': ctx.author.voice.channel.id})):
             await ctx.message.delete()
             message = await ctx.send('Канал уже добавлен')
         else:
-            await db.private_channels.insert_one({"id": ctx.author.voice.channel.id, 'category_id': ctx.author.voice.category.id})
+            await db.private_channels.insert_one({"id": ctx.author.voice.channel.id, 'category_id': ctx.author.voice.channel.category.id})
             await ctx.message.add_reaction(check_mark)
             message = ctx.message
 
