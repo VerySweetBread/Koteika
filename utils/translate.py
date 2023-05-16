@@ -30,7 +30,7 @@ def translate(string, region):
         else:
             return string
 
-async def get_text(inter, location, string):
+async def get_text(inter, string, location = None):
     data = await inter.translate(
         string=app_commands.locale_str(string),
         locale=inter.locale,

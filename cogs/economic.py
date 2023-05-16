@@ -248,7 +248,7 @@ class Economic(commands.Cog, name="Экономика"):
         if user is None: user = inter.user
 
         if self.bot.get_user(user.id).bot:
-            await inter.response.send_message(await get_text(inter, "rank", "Bot hasn't experience"))
+            await inter.response.send_message(await get_text(inter, "Bot hasn't experience", "rank"))
             return
 
         user_data = await db.members.find_one({"id": user.id})
@@ -300,27 +300,27 @@ class Economic(commands.Cog, name="Экономика"):
         else: last_day = "???"
 
 
-        description = f"{await get_text(inter, 'rank', 'Money')}: {user_data['money']}{chocolate}\n\n" \
-                      f"__{await get_text(inter, 'rank', 'Global stats')}:__\n" \
-                      f"{await get_text(inter, 'rank', 'Level')}: {user_data['level']}\n" \
-                      f"{await get_text(inter, 'rank', 'Exp')}: {user_data['exp']} / {user_data['level'] ** 2 * 50 + 5}" \
+        description = f"{await get_text(inter, 'Money', 'rank')}: {user_data['money']}{chocolate}\n\n" \
+                      f"__{await get_text(inter, 'Global stats', 'rank')}:__\n" \
+                      f"{await get_text(inter, 'Level', 'rank')}: {user_data['level']}\n" \
+                      f"{await get_text(inter, 'Exp', 'rank')}: {user_data['exp']} / {user_data['level'] ** 2 * 50 + 5}" \
                       f" ({(user_data['level'] ** 2 * 50 + 5) - user_data['exp']})\n" \
-                      f"{await get_text(inter, 'rank', 'Per hour')}: {per_hour}, {await get_text(inter, 'rank', 'per the past hour')}: {last_hour}\n" \
-                      f"{await get_text(inter, 'rank', 'Per day')}: {per_day}, {await get_text(inter, 'rank', 'per the past day')}: {last_day}\n"
+                      f"{await get_text(inter, 'Per hour', 'rank')}: {per_hour}, {await get_text(inter, 'per the past hour', 'rank')}: {last_hour}\n" \
+                      f"{await get_text(inter, 'Per day', 'rank')}: {per_day}, {await get_text(inter, 'per the past day', 'rank')}: {last_day}\n"
           
         secs = user_data['guild_stat'][str(inter.guild.id)]['secs_in_voice']
 
         if "guild_stat" in list(user_data.keys()):
             if inter.guild is not None and str(inter.guild.id) in list(user_data['guild_stat'].keys()):
                 description += f"\n__{await get_text(inter, 'rank', 'On this guild')}:__\n" \
-                               f"{await get_text(inter, 'rank', 'Level')}: {user_data['guild_stat'][str(inter.guild.id)]['level']}\n" \
-                               f"{await get_text(inter, 'rank', 'Exp')}: {user_data['guild_stat'][str(inter.guild.id)]['exp']} / " \
+                               f"{await get_text(inter, 'Level', 'rank')}: {user_data['guild_stat'][str(inter.guild.id)]['level']}\n" \
+                               f"{await get_text(inter, 'Exp', 'rank')}: {user_data['guild_stat'][str(inter.guild.id)]['exp']} / " \
                                f"{user_data['guild_stat'][str(inter.guild.id)]['level'] ** 2 * 50 + 5}" \
                                f" ({(user_data['guild_stat'][str(inter.guild.id)]['level'] ** 2 * 50 + 5) - user_data['guild_stat'][str(inter.guild.id)]['exp']})\n" \
-                               f"{await get_text(inter, 'rank', 'Time in voice channels')}: {self.time_translation(secs)}"
+                               f"{await get_text(inter, 'Time in voice channels', 'rank')}: {self.time_translation(secs)}"
 
 
-        e = discord.Embed(title=f"{await get_text(inter, 'rank', 'Info about')} {self.bot.get_user(user.id).name}",
+        e = discord.Embed(title=f"{await get_text(inter, 'Info about', 'rank')} {self.bot.get_user(user.id).name}",
                           description=description,
                           color=color)
         await inter.response.send_message(embed=e)
@@ -356,7 +356,7 @@ class Economic(commands.Cog, name="Экономика"):
         data_ = await db.members.find({f"guild_stat.{inter.guild.id}": {"$exists": True}}).sort(categories[category], -1).to_list(10)
 
         if not data_:
-            await inter.response.send_message(await get_text(inter, "top", "Not enough data. Try later"))
+            await inter.response.send_message(await get_text(inter, "Not enough data. Try later", "rank"))
             return
 
         l = min(len(data_), 10)

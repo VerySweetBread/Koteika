@@ -43,27 +43,13 @@ class ActiveCount(commands.Cog):
         if message.guild is None: return
 
         hour = message.created_at.replace(tzinfo=timezone.utc).astimezone(tz=None).hour
-        db.history.update_one(
+        await db.history.update_one(
             {"type": "server", "id": message.guild.id},
             {"$inc": {f"current.{hour}": 1}}
         )
 
     @app_commands.command()
     async def activity(self, inter):
-        async def get_string(inter, string: str) -> str:
-            data = await self.bot.tree.translator.translate(
-                app_commands.locale_str(string),
-                inter.locale,
-                app_commands.TranslationContext(
-                    app_commands.TranslationContextLocation.other,
-                    "activity"
-                )
-            )
-            logger.debug(data)
-
-            if data is None: return string
-            return data
-
         day = datetime.now().weekday()
         fig, ax = plt.subplots(figsize=(8, 5))
 
