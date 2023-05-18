@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 from matplotlib import ticker, markers
 from loguru import logger
 from asyncio import run_coroutine_threadsafe
-
+from utils.translate import get_text
 
 class ActiveCount(commands.Cog):
     def __init__(self, bot):
