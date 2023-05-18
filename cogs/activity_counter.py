@@ -62,25 +62,25 @@ class ActiveCount(commands.Cog):
         data = server_data['avarage']
         vals = list(map(lambda k: sum(data[k]) / len(data[k]) if len(data[k]) != 0 else 0, data.keys()))
         labels = list(map(int, data.keys()))
-        ax.bar(labels, vals, width=.9, label=await get_string(inter, "Avarage"))
+        ax.bar(labels, vals, width=.9, label=await get_text(inter, "Avarage"))
 
         vals = list(map(lambda k: max(data[k]) if len(data[k]) != 0 else 0, data.keys()))
-        ax.plot(labels, vals, label=await get_string(inter, "Max"), linestyle='', marker="_", markersize=20)
+        ax.plot(labels, vals, label=await get_text(inter, "Max"), linestyle='', marker="_", markersize=20)
 
         data = server_data['history'][self.daysoftheweek[day]]
         vals = list(map(lambda k: sum(data[k]) / len(data[k]) if len(data[k]) != 0 else 0, data.keys()))
         labels = list(map(int, data.keys()))
-        ax.bar(labels, vals, width=.6, label=await get_string(inter, "On this day\nof the week"))
+        ax.bar(labels, vals, width=.6, label=await get_text(inter, "On this day\nof the week"))
 
         data = server_data['yesterday']
         vals = [data[k] for k in data.keys()]
         labels = [int(i) for i in data.keys()]
-        ax.bar(labels, vals, width = .4, hatch='x', label=await get_string(inter, "Yesterday"))
+        ax.bar(labels, vals, width = .4, hatch='x', label=await get_text(inter, "Yesterday"))
 
         data = server_data['current']
         vals = [data[k] for k in data.keys()]
         labels = [int(i) for i in data.keys()]
-        ax.bar(labels, vals, width = .4, label=await get_string(inter, "Today"))
+        ax.bar(labels, vals, width = .4, label=await get_text(inter, "Today"))
 
         now = datetime.now()
         ax.axvline(now.hour+(now.minute/60)-0.5, color='dimgrey')
@@ -92,8 +92,8 @@ class ActiveCount(commands.Cog):
         ax.legend(loc='upper left')
         ax.grid(axis='y')
         ax.set_axisbelow(True)
-        ax.set_xlabel(await get_string(inter, 'Hours'))
-        ax.set_ylabel(await get_string(inter, 'Experience'))
+        ax.set_xlabel(await get_text(inter, 'Hours'))
+        ax.set_ylabel(await get_text(inter, 'Experience'))
         ax.set_xlim(-0.5, 23.5)
 
         ax.legend().get_frame().set_boxstyle('Round', pad=0.2, rounding_size=1)
