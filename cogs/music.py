@@ -6,7 +6,6 @@ import asyncio
 from loguru import logger
 from json import dumps
 from discord import app_commands
-from discord.ext import commands
 from dataclasses import dataclass
 
 from bot import db
@@ -31,8 +30,10 @@ class Channel:
     # skip_policy: Enum "everyone"
 
 
-class Music(commands.Cog, name="Музыка"):
+@app_commands.guild_only()
+class Music(app_commands.Group, name="music"):
     def __init__(self, bot):
+        super().__init__()
         self.bot = bot
         self.queue: dict[int, Channel] = {}
 
@@ -167,4 +168,4 @@ class Music(commands.Cog, name="Музыка"):
 
 
 async def setup(bot):
-    await bot.add_cog(Music(bot))
+    bot.tree.add_command(Music(bot))

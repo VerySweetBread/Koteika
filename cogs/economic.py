@@ -53,7 +53,7 @@ class Economic(commands.Cog, name="Экономика"):
     async def on_message(self, message):
         if not message.author.bot and message.guild is not None and not message.content.startswith(tuple(await self.bot.command_prefix(self.bot, message))):
             data = await db.members.find_one({"id": message.author.id})
-            flood_channels = await db.guild_settings.find_one({"id": message.guild.id})
+            flood_channels = await db.guild_settings.find_one({"id": message.guild.id, 'type': 'general'})
             if flood_channels is None:
                 flood_channels = []
             else:
@@ -243,7 +243,10 @@ class Economic(commands.Cog, name="Экономика"):
             })
             logger.debug(m["guild_stat"][str(guild.id)]["exp"])
 
-    @app_commands.command(description="View balance and level")
+
+    stat_gr = app_commands.Group(name="statistic", description="Some statistic")
+
+    @stat_gr.command(description="View balance and level")
     async def rank(self, inter: discord.Interaction, user: discord.Member = None):
         if user is None: user = inter.user
 
@@ -325,7 +328,7 @@ class Economic(commands.Cog, name="Экономика"):
                           color=color)
         await inter.response.send_message(embed=e)
 
-    @app_commands.command(description="Top members of the guild")
+    @stat_gr.command(description="Top members of the guild")
     @app_commands.describe(category='Category')
     @app_commands.choices(category=[
         Choice(name='Balance',                  value="Баланс"),
@@ -401,7 +404,7 @@ class Economic(commands.Cog, name="Экономика"):
 
         await inter.response.send_message(embed=e)
 
-    @app_commands.command(description="Comparison of exp with other members")
+    @stat_gr.command(description="Comparison of exp with other members")
     @app_commands.choices(period=[
         Choice(name='Per the entire period',    value=-1),
         Choice(name='Per month',                value=24*30),
@@ -477,8 +480,7 @@ class Economic(commands.Cog, name="Экономика"):
             await inter.response.send_message(file=discord.File(f))
         remove(f'tmp/{inter.id}.png')
 
-
-    @app_commands.command()
+    @stat_gr.command()
     @app_commands.choices(period=[
         Choice(name='Per the entire period',    value=-1),
         Choice(name='Per month',                value=24*30),
