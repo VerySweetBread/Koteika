@@ -15,7 +15,7 @@ class MeowTranslator(app_commands.Translator):
     async def unload(self): pass
     async def translate(self, string: app_commands.locale_str, locale: discord.Locale, context: app_commands.TranslationContext) -> Optional[str]:
         logger.debug(f"{locale}\t{string.message}")
-        if str(locale) == "ua": locale = "ru"   # TODO: make translation for Ukranian
+        if str(locale) == "uk": locale = "ru"   # TODO: make translation for Ukranian
         if str(locale) not in self.translations.keys(): return
         if context.location is trans_context.other:
             if f"{context.data}.{string.message}" in self.translations[str(locale)].keys(): 
