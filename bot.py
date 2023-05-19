@@ -19,6 +19,7 @@ from inspect import _empty
 import motor.motor_asyncio
 from loguru import logger
 from discord.ext.commands import HybridCommand
+from os.path import splitext
 
 import re
 import os
@@ -134,15 +135,12 @@ bot.owner_id = 459823895256498186
 async def on_ready():
     bot.voice_counter = {}
 
-    try:
-        await bot.load_extension("cogs.settings.server")
-    except Exception as e:
-        logger.error(repr(e))
+    await bot.load_extension("cogs.settings.server")
 
     for cog in os.listdir('./cogs'):
         if cog.endswith('.py'):
             logger.info(f"Загрузка {cog}...")
-            await bot.load_extension(f'cogs.{cog.replace(".py", "")}')
+            await bot.load_extension(f'cogs.{splitext(cog)[0]}')
 
     await db.members.update_one({"id": 459823895256498186}, {"$set": {"access_level": "secret"}})
 
