@@ -45,9 +45,9 @@ class privateChannels(commands.Cog, name="Приватные комнаты"):
             except:
                 pass
 
-        voice = (before or after).channel.guild.me.voice
+        voice = member.guild.me.voice
 
-        if voice and tuple(voice.channel.members) == (voice.guild.me,):
+        if voice and tuple(voice.channel.members) == (member.guild.me,):
             await member.guild.voice_client.disconnect()
 
     @commands.command(brief="Присваивает комнату главной",
