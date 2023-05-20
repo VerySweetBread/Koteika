@@ -256,7 +256,7 @@ class Economic(commands.Cog, name="Экономика"):
 
         user_data = await db.members.find_one({"id": user.id})
         if user_data is None or str(inter.guild.id) not in user_data['guild_stat'].keys():
-            await inter.response.send_message("Об этом пользователе информации пока нет")
+            await inter.response.send_message(await get_text(inter, "no_user_info", 'rank'))
             return
 
         if str(user.id) in self.bot.voice_counter.keys():

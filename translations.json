@@ -87,7 +87,38 @@
                 "Per hour": "За час",
                 "Per day": "За день",
                 "per the past hour": "за прошедший час",
-                "per the past day": "за прошедший день"
+                "per the past day": "за прошедший день",
+                "no_user_info": "Об этом пользователе еще нет информации"
+            },
+            "music": {
+                "to_queue": "Добавлена новая композиция в очередь",
+                "end_of_queue": "В очереди больше не осталось песен",
+                "stop_res": "Остановлено",
+                "pause_res": "Поставлено на паузу",
+                "resume_res": "Снято с паузы",
+                "disconnect_res": "Отключено",
+                "next_res": "Включена следующая композиция",
+                "not_in_vc": "Требуется нахождение в голосовом канале",
+                "occupied": "Занято каналом {}"
+            }
+        }
+    },
+
+    "en-US": {
+        "7": {
+            "music": {
+                "to_queue": "Added to queue",
+                "end_of_queue": "End of queue",
+                "stop_res": "Stoped",
+                "pause_res": "Paused",
+                "resume_res": "Resumed",
+                "disconnect_res": "Disconnected",
+                "next_res": "Switched to next track",
+                "not_in_vc": "You should be in voice channel",
+                "occupied": "Occupied by {}"
+            },
+            "rank": {
+                "no_user_info": "No data about this user yet"
             }
         }
     },
