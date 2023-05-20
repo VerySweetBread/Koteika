@@ -98,6 +98,7 @@ class Music(app_commands.Group, name="music"):
     @app_commands.command()
     async def next(self, inter):
         inter.guild.voice_client.stop()
+        await inter.response.send_message("Переключено")
 
 
     @app_commands.command(name='queue')
