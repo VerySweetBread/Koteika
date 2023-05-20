@@ -244,7 +244,7 @@ class Economic(commands.Cog, name="Экономика"):
             logger.debug(m["guild_stat"][str(guild.id)]["exp"])
 
 
-    stat_gr = app_commands.Group(name="statistic", description="Some statistic")
+    stat_gr = app_commands.Group(name="statistics", description="Some statistics")
 
     @stat_gr.command(description="View balance and level")
     async def rank(self, inter: discord.Interaction, user: discord.Member = None):
