@@ -9,6 +9,8 @@ from discord.ext import commands
 from os import remove
 from os.path import splitext, join
 
+from simpledemotivators import Demotivator as Dem
+
 tmp_dir = "tmp"
 
 class Fun(commands.Cog):
@@ -61,15 +63,11 @@ class Fun(commands.Cog):
 
     @app_commands.command()
     async def demotivator(self, inter: discord.Interaction, title: str, text: str, image: discord.Attachment):
-        logger.debug((title, text))
-
         if not "image" in image.content_type:
             await inter.response.send_message("Это не изображение")
             return
 
-        logger.debug("Meow")
         filename = join("tmp", f"{inter.id}_{image.filename}")
-        logger.debug(filename)
         await image.save(filename)
         Dem(title, text).create(filename, font_name="FreeSans.ttf")
         with open('demresult.jpg', 'rb') as f:
