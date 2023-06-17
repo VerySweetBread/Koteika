@@ -514,6 +514,8 @@ class Economic(commands.Cog, name="Экономика"):
             else:
                 vals = [info[key] for key in info.keys() if int(key) >= ts-period*60**2]
 
+            if not vals: continue
+
             ax.plot(list(map(int, info.keys()))[-len(vals):], vals, marker=marker, label=self.bot.get_user(user['id']).name)
         
         ax.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: datetime.fromtimestamp(x).strftime('%d.%m')))

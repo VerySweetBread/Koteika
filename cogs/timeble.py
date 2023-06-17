@@ -13,30 +13,20 @@ async def save_activity():
             {"type": "server", "id": data['id']},
             {
                 "$push": 
-                    {f"avarage.{i}": data['current'][str(i)] for i in range(24)},
+                    {f"avarage.{i}": data['current'][str(i)] for i in range(24)} | {f"history.{daysoftheweek[day]}.{i}": data['current'][str(i)] for i in range(24)},
                 "$set":
-                    {f'yesterday.{i}': data['current'][str(i)] for i in range(24)}
-            }
-        )
-        await db.history.update_one(
-            {"type": "server", "id": data['id']},
-            {
-                "$push": 
-                    {f"history.{daysoftheweek[day]}.{i}": data['current'][str(i)] for i in range(24)}, 
-                "$set":
-                    {f"current.{i}": 0 for i in range(24)}
+                    {f'yesterday.{i}': data['current'][str(i)] for i in range(24)} | {f"current.{i}": 0 for i in range(24)}
             }
         )
 
 async def db_sync_hour():
-    logger.info("Регистрация за час")
     async for member in db.members.find():
-        await db.members.update_one({"_id": member["_id"]}, {"$set": {f"history.hour.{int(datetime.now().timestamp())}": member["exp"]}})
-        if 'guild_stat' in member.keys():
-            for guild in member["guild_stat"].keys():
-                await db.members.update_one({"_id": member["_id"]}, {"$set": {f"guild_stat.{guild}.history.hour.{int(datetime.now().timestamp())}": member["guild_stat"][guild]["exp"]}})
-    logger.info("Регистрация завершена")
-
+        if member['history']['hour'][list(member['history']['hour'].keys())[-1]] != member['exp']:
+            await db.members.update_one({"_id": member["_id"]}, {"$set": {f"history.hour.{int(datetime.now().timestamp())}": member["exp"]}})
+            if 'guild_stat' in member.keys():
+                for guild in member["guild_stat"].keys():
+                    if member['guild_stat'][guild]['history']['hour'][list(member['guild_stat'][guild]['history']['hour'].keys())[-1]] != member['guild_stat'][guild]['exp']:
+                        await db.members.update_one({"_id": member["_id"]}, {"$set": {f"guild_stat.{guild}.history.hour.{int(datetime.now().timestamp())}": member["guild_stat"][guild]["exp"]}})
 
 async def db_sync_day():
     logger.info("Регистрация за день")
@@ -53,7 +43,7 @@ async def main(bot):
 
     every().day.at('00:00:00').do(lambda: asyncio.run_coroutine_threadsafe(save_activity(), bot.loop))
     every().hours.at("00:00").do(lambda: asyncio.run_coroutine_threadsafe(db_sync_hour(), bot.loop))
-    every().day.at("00:00:00").do(lambda: asyncio.run_coroutine_threadsafe(db_sync_day(), bot.loop))
+    # every().day.at("00:00:00").do(lambda: asyncio.run_coroutine_threadsafe(db_sync_day(), bot.loop))
 
     while True:
         run_pending()
