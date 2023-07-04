@@ -6,6 +6,9 @@ import asyncio
 from loguru import logger
 from json import dumps
 from discord import app_commands
+from discord.app_commands import Choice
+
+import enum
 from dataclasses import dataclass
 
 from bot import db
@@ -21,6 +24,11 @@ class Song:
     requester:  discord.Member
     info:       dict[str, any]
 
+class RepeatStatus(enum.Enum):
+    once            = 0
+    one_song        = 1
+    whole_playlist  = 2
+
 @dataclass
 class Channel:
     adder: discord.Member
@@ -28,6 +36,7 @@ class Channel:
     queue: list[Song]
     context: discord.Interaction
     # skip_policy: Enum "everyone"
+    repeat_status: int = RepeatStatus.once.value
 
 
 @app_commands.guild_only()
@@ -100,6 +109,17 @@ class Music(app_commands.Group, name="music"):
         inter.guild.voice_client.stop()
         await inter.response.send_message("Переключено")
 
+    @app_commands.command()
+    @app_commands.choices(status=[
+        Choice(name="once", value=RepeatStatus.once.value),
+        Choice(name="one song", value=RepeatStatus.one_song.value),
+        Choice(name="whole playlist", value=RepeatStatus.whole_playlist.value)
+    ])
+    async def repeat(self, inter, status: Choice[int]):
+        channel_info = self.queue[inter.user.voice.channel.id]
+        channel_info.repeat_status = status.value
+        await inter.response.send_message("Set repeat: `{}`".format(status.name))
+
 
     @app_commands.command(name='queue')
     async def _queue(self, inter):
@@ -157,11 +177,16 @@ class Music(app_commands.Group, name="music"):
         inter.guild.voice_client.stop()
 
         queue = self.queue[inter.user.voice.channel.id]
-        queue.cur_pos += 1
+        if queue.repeat_status != RepeatStatus.one_song.value:
+            queue.cur_pos += 1
+
         logger.debug((len(queue.queue), queue.cur_pos))
         if len(queue.queue) == queue.cur_pos:
-            asyncio.run_coroutine_threadsafe(self.__end_of_queue(inter), self.bot.loop)
-            return
+            if queue.repeat_status == RepeatStatus.whole_playlist.value:
+                queue.cur_pos = 0
+            else:
+                asyncio.run_coroutine_threadsafe(self.__end_of_queue(inter), self.bot.loop)
+                return
 
         #logger.debug([query["music_pos"]])
         info = queue.queue[queue.cur_pos].info
