@@ -22,7 +22,8 @@
 
             "hentai": "хентай",
 
-            "translate": "Перевести"
+            "translate": "Перевести",
+            "show_avatar": "Показать аватарку"
         },
         "1": {
             "Top members of the guild": "Топ участников сервера",
@@ -105,6 +106,9 @@
     },
 
     "en-US": {
+        "0": {
+            "show_avatar": "Show avatar"
+        },
         "7": {
             "music": {
                 "to_queue": "Added to queue",
