@@ -14,13 +14,12 @@ mido = "*"
 schedule = "*"
 cairosvg = "*"
 matplotlib = "*"
-simpledemotivators = {file = "https://github.com/Infqq/simpledemotivators/archive/main.zip"}
 "discord.py" = {extras = ["voice"], version = "*"}
-pillow = {file = "https://github.com/python-pillow/Pillow/archive/refs/tags/9.5.0.zip"}
+Pillow = "*"
 pretty-errors = "*"
-motor = "*"
+pyyaml = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.9"
+python_version = "3"
